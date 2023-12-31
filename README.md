@@ -57,4 +57,30 @@ Once the docker image is built, you can fetch the python package zip file using:
 > docker cp ${container_id}:/app/cairo-lang-0.12.0.zip .
 > docker rm -v ${container_id}
 ```
+```bash
+zip -r cairo-lang-0.12.0.zip cairo-lang-0.12.0
+pip install cairo-lang-0.12.0.zip
+```
 
+Compile verifier:
+```bash
+cairo-compile --cairo_path=./src src/starkware/cairo/cairo_verifier/layouts/all_cairo/cairo_verifier.cairo --output cairo_verifier.json --no_debug_info
+```
+
+Create cairo_verifier_input.json
+```json
+{
+    "proof": // <proof from stone prover>
+}
+```
+
+Run verifier:
+```bash
+cairo-run \
+    --program=cairo_verifier.json \
+    --layout=starknet_with_keccak \
+    --program_input=cairo_verifier_input.json \
+    --trace_file=cairo_verifier_trace.json \
+    --memory_file=cairo_verifier_memory.json \
+    --print_output
+```

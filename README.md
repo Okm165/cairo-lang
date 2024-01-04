@@ -62,25 +62,37 @@ zip -r cairo-lang-0.12.0.zip cairo-lang-0.12.0
 pip install cairo-lang-0.12.0.zip
 ```
 
-Compile verifier:
+Compile simple_bootloader:
 ```bash
-cairo-compile --cairo_path=./src src/starkware/cairo/cairo_verifier/layouts/all_cairo/cairo_verifier.cairo --output cairo_verifier.json --no_debug_info
+cairo-compile --cairo_path=./src src/starkware/cairo/bootloaders/simple_bootloader/simple_bootloader.cairo --output simple_bootloader.json --no_debug_info
 ```
 
-Create cairo_verifier_input.json
+Create simple_bootloader_input.json 
 ```json
 {
-    "proof": // <proof from stone prover>
+    "tasks": [
+        {
+            "type": "RunProgramTask",
+            "program": {
+                // program
+            },
+            "program_input": {
+                // program input
+            },
+            "use_poseidon": false
+        }
+    ],
+    "single_page": true
 }
 ```
 
-Run verifier:
+Run simple_bootloader:
 ```bash
 cairo-run \
-    --program=cairo_verifier.json \
+    --program=simple_bootloader.json \
     --layout=starknet_with_keccak \
-    --program_input=cairo_verifier_input.json \
-    --trace_file=cairo_verifier_trace.json \
-    --memory_file=cairo_verifier_memory.json \
+    --program_input=simple_bootloader_input.json \
+    --trace_file=simple_bootloader_trace.json \
+    --memory_file=simple_bootloader_memory.json \
     --print_output
 ```

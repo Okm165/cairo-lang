@@ -134,7 +134,14 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
         n_builtins = len(task.get_program().builtins)
         new_task_locals = {}
         if isinstance(task, RunProgramTask):
-            new_task_locals['program_input'] = task.program_input
+            input = task.program_input
+            if task_id != 0:
+                b = memory[ids.output_ptr - 1]
+                a = memory[ids.output_ptr - 2]
+                n = memory[ids.output_ptr - 3]
+                input = {"a": a, "b": b, "n": n}
+            
+            new_task_locals['program_input'] = input
             new_task_locals['WITH_BOOTLOADER'] = True
 
             vm_load_program(task.program, program_address)

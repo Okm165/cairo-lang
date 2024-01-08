@@ -14,6 +14,3 @@ cairo_verifier_trace.json
 cairo_verifier_memory.json
 cairo_verifier.json
 cairo_verifier_input.json
-
-cpu_air_params.json
-cpu_air_prover_config.json

@@ -42,7 +42,7 @@ func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
 // Returns the program hash and the output hash.
 func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     proof: StarkProof*
-) -> (program_hash: felt, output_hash: felt) {
+) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;
     verify_proof(proof=proof, security_bits=SECURITY_BITS);
     return _verify_public_input(public_input=cast(proof.public_input, PublicInput*));
@@ -50,7 +50,7 @@ func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 
 func _verify_public_input{
     range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
-}(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt) {
+}(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;
     local public_segments: SegmentInfo* = public_input.segments;
 
@@ -123,10 +123,14 @@ func _verify_public_input{
         let (output_hash) = hash_felts{hash_ptr=pedersen_ptr}(data=output, length=output_len);
     }
 
+    let c = output[output_len - 3];
+    let d = output[output_len - 2];
+    let n = output[output_len - 1];
+
     // Make sure main_page_len is correct.
     assert memory = &public_input.main_page[public_input.main_page_len];
 
-    return (program_hash=program_hash, output_hash=output_hash);
+    return (program_hash=program_hash, output_hash=output_hash, c=c, d=d, n=n);
 }
 
 // Verifies the initial or the final part of the stack.
@@ -191,11 +195,11 @@ func main{
             identifiers=ids._context.identifiers,
             proof_json=program_input["proof"]))
     %}
-    let (program_hash, output_hash) = verify_cairo_proof(proof);
+    let (program_hash, output_hash, c, d, n) = verify_cairo_proof(proof);
 
-    // Write program_hash and output_hash to output.
+    // Write program_hash and output_hash and c, d, n vals for next step to output.
     assert [cast(output_ptr, CairoVerifierOutput*)] = CairoVerifierOutput(
-        program_hash=program_hash, output_hash=output_hash
+        program_hash=program_hash, output_hash=output_hash, c=c, d=d, n=n
     );
     let output_ptr = output_ptr + CairoVerifierOutput.SIZE;
 

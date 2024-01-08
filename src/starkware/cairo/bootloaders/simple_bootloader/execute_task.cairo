@@ -136,10 +136,19 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
         if isinstance(task, RunProgramTask):
             input = task.program_input
             if task_id != 0:
-                b = memory[ids.output_ptr - 1]
-                a = memory[ids.output_ptr - 2]
-                n = memory[ids.output_ptr - 3]
-                input = {"a": a, "b": b, "n": n}
+                program_hash = memory[ids.output_ptr - 5]
+                output_hash = memory[ids.output_ptr - 4]
+                a = memory[ids.output_ptr - 3]
+                b = memory[ids.output_ptr - 2]
+                n = memory[ids.output_ptr - 1]
+
+                input = {
+                    "program_hash": program_hash,
+                    "output_hash": output_hash,
+                    "a": a,
+                    "b": b,
+                    "n": n,
+                }
             
             new_task_locals['program_input'] = input
             new_task_locals['WITH_BOOTLOADER'] = True

@@ -1,0 +1,19 @@
+{
+    "tasks": [
+        {
+            "type": "RunProgramTask",
+            "program": $verifier_program,
+            "program_input": {
+                "proof": $proof
+            },
+            "use_poseidon": false
+        },
+        {
+            "type": "RunProgramTask",
+            "program": $recursion_program,
+            "program_input": {},
+            "use_poseidon": false
+        }
+    ],
+    single_page: true
+}

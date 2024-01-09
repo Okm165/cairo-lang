@@ -13,11 +13,9 @@
                 0,
                 4,
                 4,
-                4,
-                4,
                 4
             ],
-            "last_layer_degree_bound": 128,
+            "last_layer_degree_bound": 8192,
             "n_queries": 18,
             "proof_of_work_bits": 30
         },

@@ -9,6 +9,7 @@ simple_bootloader.json
 simple_bootloader_input.json
 simple_bootloader_private_input.json
 simple_bootloader_public_input.json
+simple_bootloader_proof.json
 
 cairo_verifier_trace.json
 cairo_verifier_memory.json

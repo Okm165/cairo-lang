@@ -49,14 +49,15 @@ class BuiltinList(UserList):
 
 ALL_BUILTINS = BuiltinList(
     [
+        # recursive layout mod
         OUTPUT_BUILTIN,
         PEDERSEN_BUILTIN,
         RANGE_CHECK_BUILTIN,
-        ECDSA_BUILTIN,
+        # ECDSA_BUILTIN,
         BITWISE_BUILTIN,
-        EC_OP_BUILTIN,
-        KECCAK_BUILTIN,
-        POSEIDON_BUILTIN,
+        # EC_OP_BUILTIN,
+        # KECCAK_BUILTIN,
+        # POSEIDON_BUILTIN,
     ]
 )
 

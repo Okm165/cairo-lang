@@ -15,7 +15,7 @@ from starkware.cairo.stark_verifier.air.public_input import PublicInput, Segment
 from starkware.cairo.stark_verifier.air.public_memory import AddrValue
 from starkware.cairo.stark_verifier.core.stark import StarkProof
 
-const SECURITY_BITS = 96;
+const SECURITY_BITS = 96-18;
 const MAX_ADDRESS = 2 ** 64 - 1;
 const INITIAL_PC = 1;
 

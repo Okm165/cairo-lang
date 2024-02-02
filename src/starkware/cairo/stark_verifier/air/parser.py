@@ -143,8 +143,8 @@ def parse_proof(identifiers: IdentifierManager, proof_json: dict):
     
     # Assert stone-prover compatibility
     assert proof_json["proof_parameters"]["field"] == "PrimeField0"
-    assert proof_json["proof_parameters"]["channel_hash"] == "blake256"
-    assert proof_json["proof_parameters"]["commitment_hash"] == "blake256_masked160_lsb"
+    assert proof_json["proof_parameters"]["channel_hash"] == "keccak256"
+    assert proof_json["proof_parameters"]["commitment_hash"] == "keccak256_masked160_lsb"
     assert proof_json["proof_parameters"]["verifier_friendly_commitment_hash"] == "pedersen"
     assert proof_json["proof_parameters"]["statement"]["page_hash"] == "pedersen"
 

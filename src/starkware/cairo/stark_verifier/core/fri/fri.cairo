@@ -168,7 +168,7 @@ func fri_commit_rounds{
 
 // FRI protocol component decommitment.
 func fri_decommit{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     n_queries: felt,
     queries: felt*,
@@ -244,7 +244,7 @@ func gather_first_layer_queries(
 }
 
 func fri_decommit_layers{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     fri_group: felt*,
     n_layers: felt,

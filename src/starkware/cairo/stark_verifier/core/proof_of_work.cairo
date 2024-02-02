@@ -10,6 +10,12 @@ from starkware.cairo.stark_verifier.core.channel import (
     ChannelUnsentFelt,
     read_uint64_from_prover,
 )
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_uint256
+)
+from starkware.cairo.common.cairo_keccak.keccak import (
+    cairo_keccak_bigend,
+)
 
 const MIN_PROOF_OF_WORK_BITS = 30;
 const MAX_PROOF_OF_WORK_BITS = 50;
@@ -33,7 +39,7 @@ func proof_of_work_config_validate{range_check_ptr}(config: ProofOfWorkConfig*) 
 
 // Assumption: 0 < n_bits <= 64.
 func proof_of_work_commit{
-    range_check_ptr, keccak_ptr: felt*, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(unsent_commitment: ProofOfWorkUnsentCommitment*, config: ProofOfWorkConfig*) {
     alloc_locals;
     let digest = channel.digest;
@@ -42,7 +48,7 @@ func proof_of_work_commit{
     return ();
 }
 
-func verify_proof_of_work{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+func verify_proof_of_work{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
     digest: Uint256, n_bits: felt, nonce: ChannelSentFelt
 ) {
     alloc_locals;
@@ -58,28 +64,36 @@ func verify_proof_of_work{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: Bitw
     let (digest_lh, digest_ll) = unsigned_div_rem(digest.low, WORD_UPPER_BOUND);
     let (data) = alloc();
     let data_start = data;
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(
+    keccak_add_uint256{inputs=data}(
+        num=Uint256(
             low=digest_hl * WORD_UPPER_BOUND + digest_lh,
             high=0x123456789abcded * WORD_UPPER_BOUND + digest_hh,
         ),
+        bigend=1
     );
     // Align 72 bit value to MSB.
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(low=0, high=(digest_ll * BYTE_UPPER_BOUND + n_bits) * 2 ** 56)
+    keccak_add_uint256{inputs=data}(
+        num=Uint256(low=0, high=(digest_ll * BYTE_UPPER_BOUND + n_bits) * 2 ** 56),
+        bigend=1
     );
-    let (init_hash) = blake2s_bigend(data=data_start, n_bytes=0x29);
+    let (init_hash) = cairo_keccak_bigend(inputs=data_start, n_bytes=0x29);
 
     // Compute Hash(init_hash_high || init_hash_low || nonce)
     //                0x10 bytes   ||  0x10 bytes   || 8 bytes
     // Total of 0x28 bytes.
     let (data) = alloc();
     let data_start = data;
-    blake2s_add_uint256_bigend{data=data}(init_hash);
+    keccak_add_uint256{inputs=data}(
+        num=init_hash,
+        bigend=1
+    );
     // Align 64 bit value to MSB.
     static_assert MAX_NONCE == 2 ** 64 - 1;
-    blake2s_add_uint256_bigend{data=data}(Uint256(low=0, high=nonce.value * 2 ** 64));
-    let (result) = blake2s_bigend(data=data_start, n_bytes=0x28);
+    keccak_add_uint256{inputs=data}(
+        num=Uint256(low=0, high=nonce.value * 2 ** 64),
+        bigend=1
+    );
+    let (result) = cairo_keccak_bigend(inputs=data_start, n_bytes=0x28);
     let (work_limit) = pow(2, 128 - n_bits);
 
     // Check.

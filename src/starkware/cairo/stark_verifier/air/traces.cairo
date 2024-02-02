@@ -105,7 +105,7 @@ func traces_commit{
 // Verifies a decommitment for the traces at the query indices.
 // decommitment - holds the commited values of the leaves at the query_indices.
 func traces_decommit{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     air: AirWithLayout*,
     n_queries: felt,

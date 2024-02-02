@@ -14,6 +14,12 @@ from starkware.cairo.stark_verifier.core.vector_commitment import (
     vector_commit,
     vector_commitment_decommit,
 )
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felts,
+)
+from starkware.cairo.common.cairo_keccak.keccak import (
+    cairo_keccak_bigend,
+)
 
 // Commitment values for a table commitment protocol. Used to generate a commitment by "reading"
 // these values from the channel.
@@ -65,7 +71,7 @@ func table_commit{
 // decommitment - the claimed values at those indices.
 // witness - the decommitment witness.
 func table_decommit{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     commitment: TableCommitment*,
     n_queries: felt,
@@ -123,7 +129,7 @@ func to_montgomery(n_values: felt, values: felt*, output: felt*) {
 // decommitment - input table values.
 // vector_queries - output vector queries.
 // n_columns - number of columns in table.
-func generate_vector_queries{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+func generate_vector_queries{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
     n_queries: felt, queries: felt*, values: felt*, vector_queries: VectorQuery*, n_columns: felt
 ) {
     if (n_queries == 0) {
@@ -146,8 +152,8 @@ func generate_vector_queries{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: B
 
     let (data: felt*) = alloc();
     let data_start = data;
-    blake2s_add_felts{data=data}(n_elements=n_columns, elements=values, bigend=1);
-    let (hash) = blake2s_bigend(data=data_start, n_bytes=32 * n_columns);
+    keccak_add_felts{inputs=data}(n_elements=n_columns, elements=values, bigend=1);
+    let (hash) = cairo_keccak_bigend(inputs=data_start, n_bytes=32 * n_columns);
 
     // Truncate hash - convert value to felt, by taking the 160 least significant bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

@@ -48,7 +48,7 @@ struct AirInstance {
 }
 
 func public_input_hash{
-    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, blake2s_ptr: felt*
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*
 }(air: AirInstance*, public_input: PublicInput*) -> (res: Uint256) {
     jmp abs air.public_input_hash;
 }
@@ -80,7 +80,7 @@ func traces_commit{
 }
 
 func traces_decommit{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     air: AirInstance*,
     n_queries: felt,

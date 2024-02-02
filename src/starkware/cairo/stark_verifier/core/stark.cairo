@@ -156,24 +156,20 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 
     // Validate the public input.
     public_input_validate(air=air, public_input=proof.public_input, stark_domains=stark_domains);
-
-    // Initialize blake2s.
-    let (blake2s_ptr: felt*) = alloc();
-    local blake2s_ptr_start: felt* = blake2s_ptr;
     
     // Initialize keccak.
     let (keccak_ptr: felt*) = alloc();
     local keccak_ptr_start: felt* = keccak_ptr;
 
     // Compute the initial hash seed for the Fiat-Shamir channel.
-    let (digest) = public_input_hash{blake2s_ptr=blake2s_ptr}(
+    let (digest) = public_input_hash{keccak_ptr=keccak_ptr}(
         air=air, public_input=proof.public_input
     );
 
     // Construct the channel.
     let (channel: Channel) = channel_new(digest=digest);
 
-    with blake2s_ptr, keccak_ptr, channel {
+    with keccak_ptr, channel {
         let (stark_commitment) = stark_commit(
             air=air,
             public_input=proof.public_input,
@@ -198,7 +194,6 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
         );
     }
 
-    finalize_blake2s(blake2s_ptr_start, blake2s_ptr);
     finalize_keccak(keccak_ptr_start, keccak_ptr);
 
     return ();
@@ -208,7 +203,6 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 func stark_commit{
     range_check_ptr,
     keccak_ptr: felt*,
-    blake2s_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     channel: Channel,
@@ -333,7 +327,7 @@ func verify_oods{range_check_ptr}(
 
 // STARK decommitment phase.
 func stark_decommit{
-    range_check_ptr, blake2s_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     air: AirInstance*,
     public_input: PublicInput*,

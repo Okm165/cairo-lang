@@ -33,7 +33,7 @@ func proof_of_work_config_validate{range_check_ptr}(config: ProofOfWorkConfig*) 
 
 // Assumption: 0 < n_bits <= 64.
 func proof_of_work_commit{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: felt*, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(unsent_commitment: ProofOfWorkUnsentCommitment*, config: ProofOfWorkConfig*) {
     alloc_locals;
     let digest = channel.digest;

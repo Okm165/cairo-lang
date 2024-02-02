@@ -68,7 +68,7 @@ func validate_vector_commitment{range_check_ptr}(
 }
 
 func vector_commit{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: VectorUnsentCommitment, config: VectorCommitmentConfig*) -> (
     res: VectorCommitment*
 ) {

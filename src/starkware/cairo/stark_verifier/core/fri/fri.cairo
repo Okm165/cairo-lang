@@ -96,7 +96,7 @@ struct FriLayerWitness {
 // Commit function of the FRI component.
 // Implements the commit phase of the FRI protocol.
 func fri_commit{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: FriUnsentCommitment*, config: FriConfig*) -> (commitment: FriCommitment*) {
     alloc_locals;
     let (inner_layer_commitments: TableCommitment**) = alloc();
@@ -135,7 +135,7 @@ func fri_commit{
 // Performs FRI commitment phase rounds. Each round reads a commitment on a layer, and sends an
 // evaluation point for the next round.
 func fri_commit_rounds{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(
     n_layers: felt,
     configs: TableCommitmentConfig*,

@@ -46,7 +46,7 @@ struct TableCommitmentWitness {
 }
 
 func table_commit{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: TableUnsentCommitment, config: TableCommitmentConfig*) -> (
     res: TableCommitment*
 ) {

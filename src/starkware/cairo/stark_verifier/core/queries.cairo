@@ -9,7 +9,7 @@ from starkware.cairo.stark_verifier.core.utils import bit_reverse_u64
 
 // Samples random queries from the verifier.
 func generate_queries{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(n_samples: felt, stark_domains: StarkDomains*) -> (n_queries: felt, queries: felt*) {
     alloc_locals;
 
@@ -27,7 +27,7 @@ func generate_queries{
 }
 
 func sample_random_queries{
-    blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(n_samples: felt, samples: felt*, query_upper_bound: felt) {
     // Since samples are generated in quadruplets, we might generate up to 3 extra query indices.
     // Return if we n_samples is 0, -1, -2 or -3.

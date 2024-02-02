@@ -69,7 +69,7 @@ func traces_config_validate{range_check_ptr}(
 }
 
 func traces_commit{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(
     air: AirInstance*,
     public_input: PublicInput*,

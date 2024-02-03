@@ -1,4 +1,4 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.stark_verifier.core.channel import Channel
@@ -48,7 +48,7 @@ struct AirInstance {
 }
 
 func public_input_hash{
-    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*
 }(air: AirInstance*, public_input: PublicInput*) -> (res: Uint256) {
     jmp abs air.public_input_hash;
 }
@@ -69,7 +69,7 @@ func traces_config_validate{range_check_ptr}(
 }
 
 func traces_commit{
-    range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(
     air: AirInstance*,
     public_input: PublicInput*,
@@ -80,7 +80,7 @@ func traces_commit{
 }
 
 func traces_decommit{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     air: AirInstance*,
     n_queries: felt,

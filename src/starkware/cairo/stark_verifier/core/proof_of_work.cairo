@@ -1,6 +1,6 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_blake2s.blake2s import blake2s_add_uint256_bigend, blake2s_bigend
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_in_range, assert_lt, assert_nn_le, unsigned_div_rem
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.uint256 import Uint256
@@ -13,8 +13,8 @@ from starkware.cairo.stark_verifier.core.channel import (
 from starkware.cairo.common.keccak_utils.keccak_utils import (
     keccak_add_uint256
 )
-from starkware.cairo.common.cairo_keccak.keccak import (
-    cairo_keccak_bigend,
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
 
 const MIN_PROOF_OF_WORK_BITS = 30;
@@ -39,7 +39,7 @@ func proof_of_work_config_validate{range_check_ptr}(config: ProofOfWorkConfig*) 
 
 // Assumption: 0 < n_bits <= 64.
 func proof_of_work_commit{
-    range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(unsent_commitment: ProofOfWorkUnsentCommitment*, config: ProofOfWorkConfig*) {
     alloc_locals;
     let digest = channel.digest;
@@ -48,7 +48,7 @@ func proof_of_work_commit{
     return ();
 }
 
-func verify_proof_of_work{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+func verify_proof_of_work{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     digest: Uint256, n_bits: felt, nonce: ChannelSentFelt
 ) {
     alloc_locals;
@@ -76,7 +76,7 @@ func verify_proof_of_work{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: Bitwi
         num=Uint256(low=0, high=(digest_ll * BYTE_UPPER_BOUND + n_bits) * 2 ** 56),
         bigend=1
     );
-    let (init_hash) = cairo_keccak_bigend(inputs=data_start, n_bytes=0x29);
+    let (init_hash) = keccak_bigend(inputs=data_start, n_bytes=0x29);
 
     // Compute Hash(init_hash_high || init_hash_low || nonce)
     //                0x10 bytes   ||  0x10 bytes   || 8 bytes
@@ -93,7 +93,7 @@ func verify_proof_of_work{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: Bitwi
         num=Uint256(low=0, high=nonce.value * 2 ** 64),
         bigend=1
     );
-    let (result) = cairo_keccak_bigend(inputs=data_start, n_bytes=0x28);
+    let (result) = keccak_bigend(inputs=data_start, n_bytes=0x28);
     let (work_limit) = pow(2, 128 - n_bits);
 
     // Check.

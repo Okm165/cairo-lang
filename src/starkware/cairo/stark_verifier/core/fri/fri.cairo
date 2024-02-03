@@ -1,5 +1,5 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import horner_eval
 from starkware.cairo.common.pow import pow
 from starkware.cairo.stark_verifier.core.channel import (
@@ -96,7 +96,7 @@ struct FriLayerWitness {
 // Commit function of the FRI component.
 // Implements the commit phase of the FRI protocol.
 func fri_commit{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: FriUnsentCommitment*, config: FriConfig*) -> (commitment: FriCommitment*) {
     alloc_locals;
     let (inner_layer_commitments: TableCommitment**) = alloc();
@@ -135,7 +135,7 @@ func fri_commit{
 // Performs FRI commitment phase rounds. Each round reads a commitment on a layer, and sends an
 // evaluation point for the next round.
 func fri_commit_rounds{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(
     n_layers: felt,
     configs: TableCommitmentConfig*,
@@ -168,7 +168,7 @@ func fri_commit_rounds{
 
 // FRI protocol component decommitment.
 func fri_decommit{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     n_queries: felt,
     queries: felt*,
@@ -244,7 +244,7 @@ func gather_first_layer_queries(
 }
 
 func fri_decommit_layers{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     fri_group: felt*,
     n_layers: felt,

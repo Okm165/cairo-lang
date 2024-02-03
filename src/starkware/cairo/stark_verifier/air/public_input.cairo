@@ -6,7 +6,7 @@ from starkware.cairo.common.cairo_blake2s.blake2s import (
     blake2s_bigend,
     blake2s_felts,
 )
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.hash_state import hash_finalize, hash_init, hash_update
 from starkware.cairo.common.math import assert_le, assert_nn, assert_nn_le
@@ -24,8 +24,8 @@ from starkware.cairo.common.keccak_utils.keccak_utils import (
     keccak_add_felts,
     keccak_add_uint256,
 )
-from starkware.cairo.common.cairo_keccak.keccak import (
-    cairo_keccak_bigend,
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
 
 struct PublicInput {
@@ -67,7 +67,7 @@ struct SegmentInfo {
 // Computes the hash of the public input, which is used as the initial seed for the Fiat-Shamir
 // heuristic.
 func public_input_hash{
-    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*
 }(air: AirWithLayout*, public_input: PublicInput*) -> (res: Uint256) {
     alloc_locals;
 
@@ -113,7 +113,7 @@ func public_input_hash{
 
     // Each word in data is 4 bytes. This is specific to the blake implementation.
     let n_bytes = (data - data_start) * 4;
-    let (res) = cairo_keccak_bigend(inputs=data_start, n_bytes=n_bytes);
+    let (res) = keccak_bigend(inputs=data_start, n_bytes=n_bytes);
     return (res=res);
 }
 

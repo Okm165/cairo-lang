@@ -4,7 +4,7 @@ from starkware.cairo.common.cairo_blake2s.blake2s import (
     blake2s_add_uint256_bigend,
     blake2s_bigend,
 )
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin, hash2
 from starkware.cairo.common.math import assert_nn, assert_nn_le, split_felt, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le_felt
@@ -19,8 +19,8 @@ from starkware.cairo.stark_verifier.core.channel import (
 from starkware.cairo.common.keccak_utils.keccak_utils import (
     keccak_add_felt,
 )
-from starkware.cairo.common.cairo_keccak.keccak import (
-    cairo_keccak_bigend,
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
 
 // Commitment values for a vector commitment. Used to generate a commitment by "reading" these
@@ -74,7 +74,7 @@ func validate_vector_commitment{range_check_ptr}(
 }
 
 func vector_commit{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: VectorUnsentCommitment, config: VectorCommitmentConfig*) -> (
     res: VectorCommitment*
 ) {
@@ -103,7 +103,7 @@ func calc_n_verifier_friendly_layers{range_check_ptr}(
 // Decommits a VectorCommitment at multiple indices.
 // Indices must be sorted and unique.
 func vector_commitment_decommit{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     commitment: VectorCommitment*,
     n_queries: felt,
@@ -173,7 +173,7 @@ func shift_queries{range_check_ptr}(
 // node or a leaf).
 func compute_root_from_queries{
     range_check_ptr,
-    keccak_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     pedersen_ptr: HashBuiltin*,
     authentications: felt*,
@@ -238,7 +238,7 @@ func compute_root_from_queries{
     );
 }
 func hash_keccak_or_pedersen{
-    range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, pedersen_ptr: HashBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, pedersen_ptr: HashBuiltin*
 }(x: felt, y: felt, is_verifier_friendly: felt) -> (res: felt) {
     if (is_verifier_friendly == 1) {
         let (res) = hash2{hash_ptr=pedersen_ptr}(x=x, y=y);
@@ -252,7 +252,7 @@ func hash_keccak_or_pedersen{
 // A 160 LSB truncated version of keccak.
 // hash:
 //   keccak(x, y) & ~((1<<96) - 1).
-func truncated_keccak{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+func truncated_keccak{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     x: felt, y: felt
 ) -> (res: felt) {
     alloc_locals;
@@ -261,7 +261,7 @@ func truncated_keccak{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBu
 
     keccak_add_felt{inputs=data}(num=x, bigend=1);
     keccak_add_felt{inputs=data}(num=y, bigend=1);
-    let (hash) = cairo_keccak_bigend(inputs=data_start, n_bytes=64);
+    let (hash) = keccak_bigend(inputs=data_start, n_bytes=64);
 
     // Truncate hash - convert value to felt, by taking the least significant 160 bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

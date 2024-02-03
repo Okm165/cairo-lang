@@ -1,5 +1,5 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_le, unsigned_div_rem
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.usort import usort
@@ -9,7 +9,7 @@ from starkware.cairo.stark_verifier.core.utils import bit_reverse_u64
 
 // Samples random queries from the verifier.
 func generate_queries{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(n_samples: felt, stark_domains: StarkDomains*) -> (n_queries: felt, queries: felt*) {
     alloc_locals;
 
@@ -27,7 +27,7 @@ func generate_queries{
 }
 
 func sample_random_queries{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(n_samples: felt, samples: felt*, query_upper_bound: felt) {
     // Since samples are generated in quadruplets, we might generate up to 3 extra query indices.
     // Return if we n_samples is 0, -1, -2 or -3.

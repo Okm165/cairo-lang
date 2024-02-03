@@ -1,7 +1,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_blake2s.blake2s import finalize_blake2s
 from starkware.cairo.common.cairo_keccak.keccak import finalize_keccak
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.stark_verifier.core.air_interface import (
@@ -144,7 +144,7 @@ struct InteractionValuesAfterOods {
 }
 
 // Verifies a STARK proof.
-func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
+func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
     air: AirInstance*, proof: StarkProof*, security_bits: felt
 ) -> () {
     alloc_locals;
@@ -156,20 +156,21 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 
     // Validate the public input.
     public_input_validate(air=air, public_input=proof.public_input, stark_domains=stark_domains);
-    
-    // Initialize keccak.
-    let (keccak_ptr: felt*) = alloc();
-    local keccak_ptr_start: felt* = keccak_ptr;
 
     // Compute the initial hash seed for the Fiat-Shamir channel.
     let (digest) = public_input_hash{keccak_ptr=keccak_ptr}(
         air=air, public_input=proof.public_input
     );
 
+    %{
+        print(hex(ids.digest.high))
+        print(hex(ids.digest.low))
+    %}
+
     // Construct the channel.
     let (channel: Channel) = channel_new(digest=digest);
 
-    with keccak_ptr, channel {
+    with channel {
         let (stark_commitment) = stark_commit(
             air=air,
             public_input=proof.public_input,
@@ -194,15 +195,13 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
         );
     }
 
-    finalize_keccak(keccak_ptr_start, keccak_ptr);
-
     return ();
 }
 
 // STARK commitment phase.
 func stark_commit{
     range_check_ptr,
-    keccak_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     channel: Channel,
@@ -327,7 +326,7 @@ func verify_oods{range_check_ptr}(
 
 // STARK decommitment phase.
 func stark_decommit{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     air: AirInstance*,
     public_input: PublicInput*,

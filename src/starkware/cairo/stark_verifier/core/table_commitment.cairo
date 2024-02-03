@@ -1,6 +1,6 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_blake2s.blake2s import blake2s_add_felts, blake2s_bigend
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 from starkware.cairo.common.uint256 import Uint256
@@ -17,10 +17,9 @@ from starkware.cairo.stark_verifier.core.vector_commitment import (
 from starkware.cairo.common.keccak_utils.keccak_utils import (
     keccak_add_felts,
 )
-from starkware.cairo.common.cairo_keccak.keccak import (
-    cairo_keccak_bigend,
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
-
 // Commitment values for a table commitment protocol. Used to generate a commitment by "reading"
 // these values from the channel.
 struct TableUnsentCommitment {
@@ -52,7 +51,7 @@ struct TableCommitmentWitness {
 }
 
 func table_commit{
-    keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
+    keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel, range_check_ptr
 }(unsent_commitment: TableUnsentCommitment, config: TableCommitmentConfig*) -> (
     res: TableCommitment*
 ) {
@@ -71,7 +70,7 @@ func table_commit{
 // decommitment - the claimed values at those indices.
 // witness - the decommitment witness.
 func table_decommit{
-    range_check_ptr, keccak_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
 }(
     commitment: TableCommitment*,
     n_queries: felt,
@@ -129,7 +128,7 @@ func to_montgomery(n_values: felt, values: felt*, output: felt*) {
 // decommitment - input table values.
 // vector_queries - output vector queries.
 // n_columns - number of columns in table.
-func generate_vector_queries{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+func generate_vector_queries{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     n_queries: felt, queries: felt*, values: felt*, vector_queries: VectorQuery*, n_columns: felt
 ) {
     if (n_queries == 0) {
@@ -153,7 +152,7 @@ func generate_vector_queries{range_check_ptr, keccak_ptr: felt*, bitwise_ptr: Bi
     let (data: felt*) = alloc();
     let data_start = data;
     keccak_add_felts{inputs=data}(n_elements=n_columns, elements=values, bigend=1);
-    let (hash) = cairo_keccak_bigend(inputs=data_start, n_bytes=32 * n_columns);
+    let (hash) = keccak_bigend(inputs=data_start, n_bytes=32 * n_columns);
 
     // Truncate hash - convert value to felt, by taking the 160 least significant bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

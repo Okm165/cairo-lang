@@ -259,9 +259,9 @@ func truncated_keccak{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: 
     let (data: felt*) = alloc();
     let data_start = data;
 
-    keccak_add_felt{inputs=data}(num=x, bigend=1);
-    keccak_add_felt{inputs=data}(num=y, bigend=1);
-    let (hash) = keccak_bigend(inputs=data_start, n_bytes=64);
+    keccak_add_felt{data=data}(num=x, bigend=1);
+    keccak_add_felt{data=data}(num=y, bigend=1);
+    let (hash) = keccak_bigend(data=data_start, n_bytes=64);
 
     // Truncate hash - convert value to felt, by taking the least significant 160 bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

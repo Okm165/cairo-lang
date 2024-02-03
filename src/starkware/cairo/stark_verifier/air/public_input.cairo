@@ -82,38 +82,38 @@ func public_input_hash{
 
     let (data: felt*) = alloc();
     let data_start = data;
-    
-    keccak_add_felt{inputs=data}(num=public_input.log_n_steps, bigend=1);
-    keccak_add_felt{inputs=data}(num=public_input.rc_min, bigend=1);
-    keccak_add_felt{inputs=data}(num=public_input.rc_max, bigend=1);
-    keccak_add_felt{inputs=data}(num=public_input.layout, bigend=1);
+    with data {    
+        keccak_add_felt(num=public_input.log_n_steps, bigend=1);
+        keccak_add_felt(num=public_input.rc_min, bigend=1);
+        keccak_add_felt(num=public_input.rc_max, bigend=1);
+        keccak_add_felt(num=public_input.layout, bigend=1);
 
-    keccak_add_felts{inputs=data}(
-        n_elements=air.air.n_dynamic_params, elements=public_input.dynamic_params, bigend=1
-    );
+        keccak_add_felts(
+            n_elements=air.air.n_dynamic_params, elements=public_input.dynamic_params, bigend=1
+        );
 
-    // n_segments is not written, it is assumed to be fixed.
-    keccak_add_felts{inputs=data}(
-        n_elements=public_input.n_segments * SegmentInfo.SIZE,
-        elements=public_input.segments,
-        bigend=1,
-    );
-    keccak_add_felt{inputs=data}(num=public_input.padding_addr, bigend=1);
-    keccak_add_felt{inputs=data}(num=public_input.padding_value, bigend=1);
-    keccak_add_felt{inputs=data}(num=1 + public_input.n_continuous_pages, bigend=1);
+        // n_segments is not written, it is assumed to be fixed.
+        keccak_add_felts(
+            n_elements=public_input.n_segments * SegmentInfo.SIZE,
+            elements=public_input.segments,
+            bigend=1,
+        );
+        keccak_add_felt(num=public_input.padding_addr, bigend=1);
+        keccak_add_felt(num=public_input.padding_value, bigend=1);
+        keccak_add_felt(num=1 + public_input.n_continuous_pages, bigend=1);
 
-    // Main page.
-    keccak_add_felt{inputs=data}(num=public_input.main_page_len, bigend=1);
-    keccak_add_felt{inputs=data}(num=main_page_hash, bigend=1);
+        // Main page.
+        keccak_add_felt(num=public_input.main_page_len, bigend=1);
+        keccak_add_felt(num=main_page_hash, bigend=1);
 
-    // Add the rest of the pages.
-    add_continuous_page_headers{data=data}(
-        n_pages=public_input.n_continuous_pages, pages=public_input.continuous_page_headers
-    );
-
-    // Each word in data is 4 bytes. This is specific to the blake implementation.
-    let n_bytes = (data - data_start) * 4;
-    let (res) = keccak_bigend(inputs=data_start, n_bytes=n_bytes);
+        // Add the rest of the pages.
+        add_continuous_page_headers(
+            n_pages=public_input.n_continuous_pages, pages=public_input.continuous_page_headers
+        );
+    }
+    // Each word in data is 8 bytes. This is specific to the keccak implementation.
+    let n_bytes = (data - data_start) * 8;
+    let (res) = keccak_bigend(data=data_start, n_bytes=n_bytes);
     return (res=res);
 }
 
@@ -124,11 +124,11 @@ func add_continuous_page_headers{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, 
         return ();
     }
 
-    keccak_add_felt{inputs=data}(num=pages.start_address, bigend=1);
-    keccak_add_felt{inputs=data}(num=pages.size, bigend=1);
-    keccak_add_uint256{inputs=data}(num=pages.hash, bigend=1);
+    keccak_add_felt(num=pages.start_address, bigend=1);
+    keccak_add_felt(num=pages.size, bigend=1);
+    keccak_add_uint256(num=pages.hash, bigend=1);
 
-    return add_continuous_page_headers{data=data}(n_pages=n_pages - 1, pages=&pages[1]);
+    return add_continuous_page_headers(n_pages=n_pages - 1, pages=&pages[1]);
 }
 
 // Returns the product of all public memory cells.

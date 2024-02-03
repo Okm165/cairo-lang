@@ -64,7 +64,7 @@ func verify_proof_of_work{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_p
     let (digest_lh, digest_ll) = unsigned_div_rem(digest.low, WORD_UPPER_BOUND);
     let (data) = alloc();
     let data_start = data;
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(
             low=digest_hl * WORD_UPPER_BOUND + digest_lh,
             high=0x123456789abcded * WORD_UPPER_BOUND + digest_hh,
@@ -72,28 +72,28 @@ func verify_proof_of_work{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_p
         bigend=1
     );
     // Align 72 bit value to MSB.
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=0, high=(digest_ll * BYTE_UPPER_BOUND + n_bits) * 2 ** 56),
         bigend=1
     );
-    let (init_hash) = keccak_bigend(inputs=data_start, n_bytes=0x29);
+    let (init_hash) = keccak_bigend(data=data_start, n_bytes=0x29);
 
     // Compute Hash(init_hash_high || init_hash_low || nonce)
     //                0x10 bytes   ||  0x10 bytes   || 8 bytes
     // Total of 0x28 bytes.
     let (data) = alloc();
     let data_start = data;
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=init_hash,
         bigend=1
     );
     // Align 64 bit value to MSB.
     static_assert MAX_NONCE == 2 ** 64 - 1;
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=0, high=nonce.value * 2 ** 64),
         bigend=1
     );
-    let (result) = keccak_bigend(inputs=data_start, n_bytes=0x28);
+    let (result) = keccak_bigend(data=data_start, n_bytes=0x28);
     let (work_limit) = pow(2, 128 - n_bits);
 
     // Check.

@@ -51,9 +51,9 @@ func random_uint256_to_prover{
     alloc_locals;
     let (data: felt*) = alloc();
     let data_start = data;
-    keccak_add_uint256{inputs=data}(num=channel.digest, bigend=1);
-    keccak_add_uint256{inputs=data}(num=Uint256(low=channel.counter, high=0), bigend=1);
-    let (res) = keccak_bigend(inputs=data_start, n_bytes=64);
+    keccak_add_uint256{data=data}(num=channel.digest, bigend=1);
+    keccak_add_uint256{data=data}(num=Uint256(low=channel.counter, high=0), bigend=1);
+    let (res) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=channel.digest, counter=channel.counter + 1);
 
     return (res=res);
@@ -96,15 +96,15 @@ func read_truncated_hash_from_prover{
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
         bigend=1
     );
 
     // value encodes the 160 least significant bits of a 256-bit hash.
     let (high, low) = split_felt(value.value);
-    keccak_add_uint256{inputs=data}(num=Uint256(low=low, high=high), bigend=1);
-    let (digest) = keccak_bigend(inputs=data_start, n_bytes=64);
+    keccak_add_uint256{data=data}(num=Uint256(low=low, high=high), bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
@@ -117,13 +117,13 @@ func read_felt_from_prover{
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
         bigend=1
     );
     // The prover uses Montgomery form to generate randomness.
-    keccak_add_felt{inputs=data}(num=value.value * MONTGOMERY_R, bigend=1);
-    let (digest) = keccak_bigend(inputs=data_start, n_bytes=64);
+    keccak_add_felt{data=data}(num=value.value * MONTGOMERY_R, bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
@@ -137,13 +137,13 @@ func read_uint64_from_prover{
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
         bigend=1
     );
     // Align 64 bit value to MSB.
-    keccak_add_uint256{inputs=data}(num=Uint256(low=0, high=value.value * 2 ** 64), bigend=1);
-    let (digest) = keccak_bigend(inputs=data_start, n_bytes=0x28);
+    keccak_add_uint256{data=data}(num=Uint256(low=0, high=value.value * 2 ** 64), bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=0x28);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
@@ -176,12 +176,12 @@ func read_felt_vector_from_prover{
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    keccak_add_uint256{inputs=data}(
+    keccak_add_uint256{data=data}(
         num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
         bigend=1
     );
     read_felt_vector_from_prover_inner{data=data}(n_values=n_values, values=values);
-    let (digest) = keccak_bigend(inputs=data_start, n_bytes=32 * (1 + n_values));
+    let (digest) = keccak_bigend(data=data_start, n_bytes=32 * (1 + n_values));
     let channel = Channel(digest=digest, counter=0);
     return (values=cast(values, ChannelSentFelt*));
 }
@@ -193,6 +193,6 @@ func read_felt_vector_from_prover_inner{
     if (n_values == 0) {
         return ();
     }
-    keccak_add_felt{inputs=data}(num=values[0].value * MONTGOMERY_R, bigend=1);
+    keccak_add_felt{data=data}(num=values[0].value * MONTGOMERY_R, bigend=1);
     return read_felt_vector_from_prover_inner(n_values=n_values - 1, values=&values[1]);
 }

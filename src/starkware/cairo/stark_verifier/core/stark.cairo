@@ -3,6 +3,15 @@ from starkware.cairo.common.cairo_blake2s.blake2s import finalize_blake2s
 from starkware.cairo.common.cairo_keccak.keccak import finalize_keccak
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak,
+    keccak_bigend,
+)
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felt,
+    keccak_add_felts,
+    keccak_add_uint256,
+)
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.stark_verifier.core.air_interface import (
     AirInstance,
@@ -161,11 +170,6 @@ func verify_stark_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
     let (digest) = public_input_hash{keccak_ptr=keccak_ptr}(
         air=air, public_input=proof.public_input
     );
-
-    %{
-        print(hex(ids.digest.high))
-        print(hex(ids.digest.low))
-    %}
 
     // Construct the channel.
     let (channel: Channel) = channel_new(digest=digest);

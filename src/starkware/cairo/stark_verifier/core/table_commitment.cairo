@@ -151,8 +151,8 @@ func generate_vector_queries{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwis
 
     let (data: felt*) = alloc();
     let data_start = data;
-    keccak_add_felts{inputs=data}(n_elements=n_columns, elements=values, bigend=1);
-    let (hash) = keccak_bigend(inputs=data_start, n_bytes=32 * n_columns);
+    keccak_add_felts{data=data}(n_elements=n_columns, elements=values, bigend=1);
+    let (hash) = keccak_bigend(data=data_start, n_bytes=32 * n_columns);
 
     // Truncate hash - convert value to felt, by taking the 160 least significant bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

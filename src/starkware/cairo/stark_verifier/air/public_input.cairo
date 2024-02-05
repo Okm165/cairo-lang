@@ -1,12 +1,13 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_blake2s.blake2s import (
-    blake2s_add_felt,
-    blake2s_add_felts,
-    blake2s_add_uint256_bigend,
-    blake2s_bigend,
-    blake2s_felts,
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felt,
+    keccak_add_felts,
+    keccak_add_uint256,
 )
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
+)
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.hash_state import hash_finalize, hash_init, hash_update
 from starkware.cairo.common.math import assert_le, assert_nn, assert_nn_le
@@ -59,7 +60,7 @@ struct SegmentInfo {
 // Computes the hash of the public input, which is used as the initial seed for the Fiat-Shamir
 // heuristic.
 func public_input_hash{
-    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, blake2s_ptr: felt*
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*,
 }(air: AirWithLayout*, public_input: PublicInput*) -> (res: Uint256) {
     alloc_locals;
 
@@ -75,37 +76,37 @@ func public_input_hash{
     let (data: felt*) = alloc();
     let data_start = data;
     with data {
-        blake2s_add_felt(num=public_input.log_n_steps, bigend=1);
-        blake2s_add_felt(num=public_input.rc_min, bigend=1);
-        blake2s_add_felt(num=public_input.rc_max, bigend=1);
-        blake2s_add_felt(num=public_input.layout, bigend=1);
+        keccak_add_felt(num=public_input.log_n_steps, bigend=1);
+        keccak_add_felt(num=public_input.rc_min, bigend=1);
+        keccak_add_felt(num=public_input.rc_max, bigend=1);
+        keccak_add_felt(num=public_input.layout, bigend=1);
 
-        blake2s_add_felts(
+        keccak_add_felts(
             n_elements=air.air.n_dynamic_params, elements=public_input.dynamic_params, bigend=1
         );
 
         // n_segments is not written, it is assumed to be fixed.
-        blake2s_add_felts(
+        keccak_add_felts(
             n_elements=public_input.n_segments * SegmentInfo.SIZE,
             elements=public_input.segments,
             bigend=1,
         );
-        blake2s_add_felt(num=public_input.padding_addr, bigend=1);
-        blake2s_add_felt(num=public_input.padding_value, bigend=1);
-        blake2s_add_felt(num=1 + public_input.n_continuous_pages, bigend=1);
+        keccak_add_felt(num=public_input.padding_addr, bigend=1);
+        keccak_add_felt(num=public_input.padding_value, bigend=1);
+        keccak_add_felt(num=1 + public_input.n_continuous_pages, bigend=1);
 
         // Main page.
-        blake2s_add_felt(num=public_input.main_page_len, bigend=1);
-        blake2s_add_felt(num=main_page_hash, bigend=1);
+        keccak_add_felt(num=public_input.main_page_len, bigend=1);
+        keccak_add_felt(num=main_page_hash, bigend=1);
 
         // Add the rest of the pages.
         add_continuous_page_headers(
             n_pages=public_input.n_continuous_pages, pages=public_input.continuous_page_headers
         );
     }
-    // Each word in data is 4 bytes. This is specific to the blake implementation.
-    let n_bytes = (data - data_start) * 4;
-    let (res) = blake2s_bigend(data=data_start, n_bytes=n_bytes);
+    // Each word in data is 8 bytes. This is specific to the keccak implementation.
+    let n_bytes = (data - data_start) * 8;
+    let (res) = keccak_bigend(data=data_start, n_bytes=n_bytes);
     return (res=res);
 }
 
@@ -116,9 +117,9 @@ func add_continuous_page_headers{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, 
         return ();
     }
 
-    blake2s_add_felt(num=pages.start_address, bigend=1);
-    blake2s_add_felt(num=pages.size, bigend=1);
-    blake2s_add_uint256_bigend(pages.hash);
+    keccak_add_felt(num=pages.start_address, bigend=1);
+    keccak_add_felt(num=pages.size, bigend=1);
+    keccak_add_uint256(num=pages.hash, bigend=1);
 
     return add_continuous_page_headers(n_pages=n_pages - 1, pages=&pages[1]);
 }

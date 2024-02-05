@@ -2,7 +2,7 @@
 
 from starkware.cairo.cairo_verifier.objects import CairoVerifierOutput
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash_state import hash_felts
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.registers import get_label_location
@@ -53,7 +53,7 @@ func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 }
 
 func _verify_public_input{
-    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*
 }(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;
     local public_segments: SegmentInfo* = public_input.segments;
@@ -189,7 +189,7 @@ func extract_range{memory: AddrValue*}(addr: felt, length: felt, output: felt*) 
 //
 // Outputs the program hash and the hash of the output.
 func main{
-    output_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+    output_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*
 }() {
     alloc_locals;
     local proof: StarkProof*;

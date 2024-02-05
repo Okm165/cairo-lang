@@ -1,10 +1,12 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_blake2s.blake2s import (
-    blake2s_add_felt,
-    blake2s_add_uint256_bigend,
-    blake2s_bigend,
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felt,
+    keccak_add_uint256
+)
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash_state import hash_felts
 from starkware.cairo.common.math import (
     assert_nn,
@@ -44,21 +46,21 @@ func channel_new(digest: Uint256) -> (res: Channel) {
 
 // Generate randomness.
 func random_uint256_to_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }() -> (res: Uint256) {
     alloc_locals;
     let (data: felt*) = alloc();
     let data_start = data;
-    blake2s_add_uint256_bigend{data=data}(channel.digest);
-    blake2s_add_uint256_bigend{data=data}(Uint256(low=channel.counter, high=0));
-    let (res) = blake2s_bigend(data=data_start, n_bytes=64);
+    keccak_add_uint256{data=data}(num=channel.digest, bigend=1);
+    keccak_add_uint256{data=data}(num=Uint256(low=channel.counter, high=0), bigend=1);
+    let (res) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=channel.digest, counter=channel.counter + 1);
 
     return (res=res);
 }
 
 func random_felts_to_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(n_elements: felt, elements: felt*) -> () {
     alloc_locals;
     if (n_elements == 0) {
@@ -88,71 +90,74 @@ func random_felts_to_prover{
 
 // Reads a truncated hash from the prover. See Channel.
 func read_truncated_hash_from_prover{
-     range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+     range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(value: ChannelUnsentFelt) -> (value: ChannelSentFelt) {
     alloc_locals;
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(low=channel.digest.low + 1, high=channel.digest.high)
+    keccak_add_uint256{data=data}(
+        num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
+        bigend=1
     );
 
     // value encodes the 160 least significant bits of a 256-bit hash.
     let (high, low) = split_felt(value.value);
-    blake2s_add_uint256_bigend{data=data}(Uint256(low=low, high=high));
-    let (digest) = blake2s_bigend(data=data_start, n_bytes=64);
+    keccak_add_uint256{data=data}(num=Uint256(low=low, high=high), bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
 
 // Reads a field element from the prover. See Channel.
 func read_felt_from_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(value: ChannelUnsentFelt) -> (value: ChannelSentFelt) {
     alloc_locals;
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(low=channel.digest.low + 1, high=channel.digest.high)
+    keccak_add_uint256{data=data}(
+        num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
+        bigend=1
     );
     // The prover uses Montgomery form to generate randomness.
-    blake2s_add_felt{data=data}(num=value.value * MONTGOMERY_R, bigend=1);
-    let (digest) = blake2s_bigend(data=data_start, n_bytes=64);
+    keccak_add_felt{data=data}(num=value.value * MONTGOMERY_R, bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=64);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
 
 // Reads a 64bit integer from the prover. See Channel.
 func read_uint64_from_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(value: ChannelUnsentFelt) -> (value: ChannelSentFelt) {
     alloc_locals;
     assert_nn_le(value.value, 2 ** 64 - 1);
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(low=channel.digest.low + 1, high=channel.digest.high)
+    keccak_add_uint256{data=data}(
+        num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
+        bigend=1
     );
     // Align 64 bit value to MSB.
-    blake2s_add_uint256_bigend{data=data}(Uint256(low=0, high=value.value * 2 ** 64));
-    let (digest) = blake2s_bigend(data=data_start, n_bytes=0x28);
+    keccak_add_uint256{data=data}(num=Uint256(low=0, high=value.value * 2 ** 64), bigend=1);
+    let (digest) = keccak_bigend(data=data_start, n_bytes=0x28);
     let channel = Channel(digest=digest, counter=0);
     return (value=ChannelSentFelt(value.value));
 }
 
 // Reads multiple field elements from the prover. Repeats read_felt_from_prover. See Channel.
 func read_felts_from_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(n_values: felt, values: ChannelUnsentFelt*) -> (values: ChannelSentFelt*) {
     read_felts_from_prover_inner(n_values=n_values, values=values);
     return (values=cast(values, ChannelSentFelt*));
 }
 
 func read_felts_from_prover_inner{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(n_values: felt, values: ChannelUnsentFelt*) -> () {
     if (n_values == 0) {
         return ();
@@ -165,17 +170,18 @@ func read_felts_from_prover_inner{
 // Reads a field element vector from the prover. Unlike read_felts_from_prover, this hashes all the
 // field elements at once. See Channel.
 func read_felt_vector_from_prover{
-    range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
+    range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*, channel: Channel
 }(n_values: felt, values: ChannelUnsentFelt*) -> (values: ChannelSentFelt*) {
     alloc_locals;
     let (data: felt*) = alloc();
     let data_start = data;
     assert_not_equal(channel.digest.low, 2 ** 128 - 1);
-    blake2s_add_uint256_bigend{data=data}(
-        Uint256(low=channel.digest.low + 1, high=channel.digest.high)
+    keccak_add_uint256{data=data}(
+        num=Uint256(low=channel.digest.low + 1, high=channel.digest.high),
+        bigend=1
     );
     read_felt_vector_from_prover_inner{data=data}(n_values=n_values, values=values);
-    let (digest) = blake2s_bigend(data=data_start, n_bytes=32 * (1 + n_values));
+    let (digest) = keccak_bigend(data=data_start, n_bytes=32 * (1 + n_values));
     let channel = Channel(digest=digest, counter=0);
     return (values=cast(values, ChannelSentFelt*));
 }
@@ -187,6 +193,6 @@ func read_felt_vector_from_prover_inner{
     if (n_values == 0) {
         return ();
     }
-    blake2s_add_felt(num=values[0].value * MONTGOMERY_R, bigend=1);
+    keccak_add_felt{data=data}(num=values[0].value * MONTGOMERY_R, bigend=1);
     return read_felt_vector_from_prover_inner(n_values=n_values - 1, values=&values[1]);
 }

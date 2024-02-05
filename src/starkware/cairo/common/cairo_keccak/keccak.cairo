@@ -32,7 +32,7 @@
 //
 // The module also uses a set of helper functions to prepare the input data for keccak,
 // such as ``keccak_add_uint256()`` and ``keccak_add_felt()``. To use them, you should allocate
-// a new memory segment to variable named ``inputs`` (this value is an implicit argument to those
+// a new memory segment to variable named ``data`` (this value is an implicit argument to those
 // functions). Once the input is ready, you should call ``cairo_keccak()`` or
 // ``cairo_keccak_bigend()``.
 // Don't forget to call ``finalize_keccak()`` at the end of the program/transaction.
@@ -60,12 +60,12 @@ func cairo_keccak_uint256s{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_uint256s{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=0);
+    keccak_add_uint256s{data=data}(n_elements=n_elements, elements=elements, bigend=0);
 
-    return cairo_keccak(inputs=inputs_start, n_bytes=n_elements * 32);
+    return cairo_keccak(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple uint256 numbers (big-endian).
@@ -75,12 +75,12 @@ func cairo_keccak_uint256s_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*,
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_uint256s{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=1);
+    keccak_add_uint256s{data=data}(n_elements=n_elements, elements=elements, bigend=1);
 
-    return cairo_keccak_bigend(inputs=inputs_start, n_bytes=n_elements * 32);
+    return cairo_keccak_bigend(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple field elements.
@@ -89,12 +89,12 @@ func cairo_keccak_felts{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_pt
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_felts{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=0);
+    keccak_add_felts{data=data}(n_elements=n_elements, elements=elements, bigend=0);
 
-    return cairo_keccak(inputs=inputs_start, n_bytes=n_elements * 32);
+    return cairo_keccak(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple field elements (big-endian).
@@ -104,18 +104,18 @@ func cairo_keccak_felts_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, ke
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_felts{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=1);
+    keccak_add_felts{data=data}(n_elements=n_elements, elements=elements, bigend=1);
 
-    return cairo_keccak_bigend(inputs=inputs_start, n_bytes=n_elements * 32);
+    return cairo_keccak_bigend(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak of 'input'.
 // To use this function, split the input into words of 64 bits (little endian).
 // For example, to compute keccak('Hello world!'), use:
-//   inputs = [8031924123371070792, 560229490]
+//   data = [8031924123371070792, 560229490]
 // where:
 //   8031924123371070792 == int.from_bytes(b'Hello wo', 'little')
 //   560229490 == int.from_bytes(b'rld!', 'little')
@@ -125,9 +125,9 @@ func cairo_keccak_felts_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, ke
 // Note: You must call finalize_keccak() at the end of the program. Otherwise, this function
 // is not sound and a malicious prover may return a wrong result.
 func cairo_keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (res: Uint256) {
-    let (output) = cairo_keccak_as_words(inputs=inputs, n_bytes=n_bytes);
+    let (output) = cairo_keccak_as_words(data=data, n_bytes=n_bytes);
 
     let res_low = output[1] * 2 ** 64 + output[0];
     let res_high = output[3] * 2 ** 64 + output[2];
@@ -138,23 +138,23 @@ func cairo_keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: fel
 // Same as keccak, but outputs the hash in big endian representation.
 // Note that the input is still treated as little endian.
 func cairo_keccak_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (res: Uint256) {
-    let (hash) = cairo_keccak(inputs=inputs, n_bytes=n_bytes);
+    let (hash) = cairo_keccak(data=data, n_bytes=n_bytes);
     let (res) = uint256_reverse_endian(num=hash);
     return (res=res);
 }
 
 // Same as keccak, but outputs a pointer to 4 64-bit little endian words instead.
 func cairo_keccak_as_words{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (output: felt*) {
     alloc_locals;
 
     let (local state) = alloc();
     memset(dst=state, value=0, n=KECCAK_STATE_SIZE_FELTS);
 
-    return _keccak(inputs=inputs, n_bytes=n_bytes, state=state);
+    return _keccak(data=data, n_bytes=n_bytes, state=state);
 }
 
 // Prepares a block for the block permutation: adds padding (of the form 100...001, see the
@@ -167,25 +167,25 @@ func cairo_keccak_as_words{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak
 // bytes, no padding is added. Only the last block is padded.
 //
 // Arguments:
-//   inputs - chunk of the input, in little endian.
-//   n_bytes - the length of inputs in bytes. Must be in the range [0, 136].
+//   data - chunk of the input, in little endian.
+//   n_bytes - the length of data in bytes. Must be in the range [0, 136].
 //   state - the output of the previous block permutation that contains 25 64-bits words.
 func _prepare_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
-    inputs: felt*, n_bytes: felt, state: felt*
+    data: felt*, n_bytes: felt, state: felt*
 ) {
     alloc_locals;
 
-    let inputs_start = inputs;
-    _copy_inputs{inputs=inputs, n_bytes=n_bytes, state=state}();
+    let data_start = data;
+    _copy_data{data=data, n_bytes=n_bytes, state=state}();
     // n_words_written is the number of words written to keccak_ptr.
-    let n_words_written = inputs - inputs_start;
+    let n_words_written = data - data_start;
 
     tempvar padding_len = (KECCAK_FULL_RATE_IN_WORDS - n_words_written);
     local input_word;
     if (n_bytes == 0) {
         input_word = 0;
     } else {
-        input_word = inputs[0];
+        input_word = data[0];
     }
 
     _padding(input_word=input_word, n_bytes=n_bytes, state=state, padding_len=padding_len);
@@ -200,11 +200,11 @@ func _prepare_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: f
 
 // Xors full words from the input with the corresponding words from the output of the
 // previous block permutation, and writes the restult to keccak_ptr.
-func _copy_inputs{
+func _copy_data{
     range_check_ptr,
     bitwise_ptr: BitwiseBuiltin*,
     keccak_ptr: felt*,
-    inputs: felt*,
+    data: felt*,
     n_bytes: felt,
     state: felt*,
 }() {
@@ -213,15 +213,15 @@ func _copy_inputs{
         return ();
     }
 
-    let (next_word) = bitwise_xor(inputs[0], state[0]);
+    let (next_word) = bitwise_xor(data[0], state[0]);
     assert keccak_ptr[0] = next_word;
 
-    let inputs = &inputs[1];
+    let data = &data[1];
     let state = &state[1];
     let keccak_ptr = &keccak_ptr[1];
     let n_bytes = n_bytes - BYTES_IN_WORD;
 
-    return _copy_inputs();
+    return _copy_data();
 }
 
 // Adds padding of the form 100...001 to the last bytes of the input, to a total of
@@ -305,14 +305,14 @@ func _block_permutation{keccak_ptr: felt*}() {
 }
 
 func _keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
-    inputs: felt*, n_bytes: felt, state: felt*
+    data: felt*, n_bytes: felt, state: felt*
 ) -> (output: felt*) {
     if (nondet %{ ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES %} != 0) {
-        _prepare_block(inputs=inputs, n_bytes=KECCAK_FULL_RATE_IN_BYTES, state=state);
+        _prepare_block(data=data, n_bytes=KECCAK_FULL_RATE_IN_BYTES, state=state);
         _block_permutation();
 
         return _keccak(
-            inputs=inputs + KECCAK_FULL_RATE_IN_WORDS,
+            data=data + KECCAK_FULL_RATE_IN_WORDS,
             n_bytes=n_bytes - KECCAK_FULL_RATE_IN_BYTES,
             state=keccak_ptr - KECCAK_STATE_SIZE_FELTS,
         );
@@ -320,7 +320,7 @@ func _keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(
 
     assert_nn_le(n_bytes, KECCAK_FULL_RATE_IN_BYTES - 1);
 
-    _prepare_block(inputs=inputs, n_bytes=n_bytes, state=state);
+    _prepare_block(data=data, n_bytes=n_bytes, state=state);
     _block_permutation();
 
     return (output=keccak_ptr - KECCAK_STATE_SIZE_FELTS);
@@ -369,11 +369,11 @@ func _finalize_keccak_inner{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
 
     let keccak_ptr_start = keccak_ptr;
 
-    let (local inputs_start: felt*) = alloc();
+    let (local data_start: felt*) = alloc();
 
-    // Handle inputs.
+    // Handle data.
 
-    tempvar inputs = inputs_start;
+    tempvar data = data_start;
     tempvar keccak_ptr = keccak_ptr;
     tempvar range_check_ptr = range_check_ptr;
     tempvar m = 25;
@@ -388,9 +388,9 @@ func _finalize_keccak_inner{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
     tempvar x2 = keccak_ptr[100];
     assert [range_check_ptr + 4] = x2;
     assert [range_check_ptr + 5] = MAX_VALUE - x2;
-    assert inputs[0] = x0 + 2 ** 64 * x1 + 2 ** 128 * x2;
+    assert data[0] = x0 + 2 ** 64 * x1 + 2 ** 128 * x2;
 
-    tempvar inputs = inputs + 1;
+    tempvar data = data + 1;
     tempvar keccak_ptr = keccak_ptr + 1;
     tempvar range_check_ptr = range_check_ptr + 6;
     tempvar m = m - 1;
@@ -398,7 +398,7 @@ func _finalize_keccak_inner{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
 
     // Run keccak on the 3 instances.
 
-    let (outputs) = packed_keccak_func(inputs_start);
+    let (outputs) = packed_keccak_func(data_start);
     local bitwise_ptr: BitwiseBuiltin* = bitwise_ptr;
 
     // Handle outputs.

@@ -1,4 +1,4 @@
-%builtins output pedersen range_check bitwise
+%builtins output pedersen range_check bitwise keccak
 
 from starkware.cairo.cairo_verifier.objects import CairoVerifierOutput
 from starkware.cairo.common.alloc import alloc
@@ -25,7 +25,7 @@ const INITIAL_PC = 1;
 // See verify_stack() for more detail.
 func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
-    let n_builtins = 4;
+    let n_builtins = 8;
     assert builtins_address[n_builtins] = 0;
     return (n_builtins=n_builtins, builtins=builtins_address);
 
@@ -33,14 +33,18 @@ func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     dw 'output';
     dw 'pedersen';
     dw 'range_check';
+    dw 'ecdsa';
     dw 'bitwise';
+    dw 'ec_op';
+    dw 'keccak';
+    dw 'poseidon';
     dw 0;
 }
 
 // Verifies a complete Cairo proof of a Cairo program with a "start" section, with a single output
 // page.
 // Returns the program hash and the output hash.
-func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
+func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
     proof: StarkProof*
 ) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;

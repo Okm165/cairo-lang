@@ -1,4 +1,4 @@
-%builtins output pedersen range_check bitwise
+%builtins output pedersen range_check bitwise keccak
 
 from starkware.cairo.bootloaders.simple_bootloader.run_simple_bootloader import (
     run_simple_bootloader,
@@ -10,7 +10,11 @@ func main{
     output_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
+    ecdsa_ptr,
     bitwise_ptr,
+    ec_op_ptr,
+    keccak_ptr,
+    poseidon_ptr,
 }() {
     %{
         from starkware.cairo.bootloaders.simple_bootloader.objects import SimpleBootloaderInput

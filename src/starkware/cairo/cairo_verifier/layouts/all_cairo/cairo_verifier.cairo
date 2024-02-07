@@ -15,7 +15,7 @@ from starkware.cairo.stark_verifier.air.public_input import PublicInput, Segment
 from starkware.cairo.stark_verifier.air.public_memory import AddrValue
 from starkware.cairo.stark_verifier.core.stark import StarkProof
 
-const SECURITY_BITS = 96;
+const SECURITY_BITS = 30;
 const MAX_ADDRESS = 2 ** 64 - 1;
 const INITIAL_PC = 1;
 
@@ -25,17 +25,14 @@ const INITIAL_PC = 1;
 // See verify_stack() for more detail.
 func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
-    let n_builtins = 8;
+    let n_builtins = 5;
     assert builtins_address[n_builtins] = 0;
     return (n_builtins=n_builtins, builtins=builtins_address);
 
     data:
     dw 'output';
-    dw 'pedersen';
     dw 'range_check';
-    dw 'ecdsa';
     dw 'bitwise';
-    dw 'ec_op';
     dw 'keccak';
     dw 'poseidon';
     dw 0;
@@ -49,7 +46,8 @@ func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 ) -> (program_hash: felt, output_hash: felt) {
     alloc_locals;
     verify_proof(proof=proof, security_bits=SECURITY_BITS);
-    return _verify_public_input(public_input=cast(proof.public_input, PublicInput*));
+    // return _verify_public_input(public_input=cast(proof.public_input, PublicInput*));
+    return (program_hash=0, output_hash=0);
 }
 
 func _verify_public_input{

@@ -6,16 +6,16 @@ from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash_many
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, PoseidonBuiltin
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.registers import get_label_location
-from starkware.cairo.stark_verifier.air.layouts.all_cairo.public_verify import (
+from starkware.cairo.stark_verifier.air.layouts.small.public_verify import (
     get_layout_builtins,
     segments,
 )
-from starkware.cairo.stark_verifier.air.layouts.all_cairo.verify import verify_proof
+from starkware.cairo.stark_verifier.air.layouts.small.verify import verify_proof
 from starkware.cairo.stark_verifier.air.public_input import PublicInput, SegmentInfo
 from starkware.cairo.stark_verifier.air.public_memory import AddrValue
 from starkware.cairo.stark_verifier.core.stark import StarkProof
 
-const SECURITY_BITS = 96;
+const SECURITY_BITS = 60;
 const MAX_ADDRESS = 2 ** 64 - 1;
 const INITIAL_PC = 1;
 
@@ -25,20 +25,12 @@ const INITIAL_PC = 1;
 // See verify_stack() for more detail.
 func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
-    let n_builtins = 9;
+    let n_builtins = 1;
     assert builtins_address[n_builtins] = 0;
     return (n_builtins=n_builtins, builtins=builtins_address);
 
     data:
     dw 'output';
-    dw 'pedersen';
-    dw 'range_check';
-    dw 'ecdsa';
-    dw 'bitwise';
-    dw 'ec_op';
-    dw 'keccak';
-    dw 'poseidon';
-    dw 'range_check96';
     dw 0;
 }
 

@@ -11,7 +11,7 @@ from starkware.cairo.stark_verifier.core.channel import (
     read_uint64_from_prover,
 )
 
-const MIN_PROOF_OF_WORK_BITS = 30;
+const MIN_PROOF_OF_WORK_BITS = 20;
 const MAX_PROOF_OF_WORK_BITS = 50;
 const MAX_NONCE = 2 ** 64 - 1;
 const BYTE_UPPER_BOUND = 256;

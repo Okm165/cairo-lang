@@ -9,5 +9,5 @@
             "use_poseidon": false
         }
     ],
-    single_page: false
+    single_page: true
 }

@@ -1,0 +1,13 @@
+{
+    "tasks": [
+        {
+            "type": "RunProgramTask",
+            "program": $program,
+            "program_input": {
+                "proof": $proof
+            },
+            "use_poseidon": false
+        }
+    ],
+    single_page: false
+}

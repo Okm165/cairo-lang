@@ -3,9 +3,7 @@
         {
             "type": "RunProgramTask",
             "program": $program,
-            "program_input": {
-                "proof": $proof
-            },
+            "program_input": $program_input,
             "use_poseidon": false
         }
     ],

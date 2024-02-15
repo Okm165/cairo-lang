@@ -21,7 +21,10 @@ setuptools.setup(
     setup_requires=["wheel"],
     url="https://cairo-lang.org/",
     package_data={
+        "utils/": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.cairo_verifier": ["*.cairo", "*/*.cairo"],
+        "starkware.cairo.cairo_verifier.layouts": ["*.cairo", "*/*.cairo"],
+        "starkware.cairo.cairo_verifier.layouts.all_cairo": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.stark_verifier.air": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.stark_verifier.air.layouts": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.stark_verifier.air.layouts.all_cairo": ["*.cairo", "*/*.cairo"],

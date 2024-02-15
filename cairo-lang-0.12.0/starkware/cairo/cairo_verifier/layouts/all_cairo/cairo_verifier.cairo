@@ -1,16 +1,13 @@
-%builtins output pedersen range_check bitwise
-
-from starkware.cairo.cairo_verifier.objects import CairoVerifierOutput
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
-from starkware.cairo.common.hash_state import hash_felts
+// from starkware.cairo.common.hash_state import hash_felts
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.registers import get_label_location
-from starkware.cairo.stark_verifier.air.layouts.all_cairo.public_verify import (
+from starkware.cairo.stark_verifier.air.layouts.recursive.public_verify import (
     get_layout_builtins,
     segments,
 )
-from starkware.cairo.stark_verifier.air.layouts.all_cairo.verify import verify_proof
+from starkware.cairo.stark_verifier.air.layouts.recursive.verify import verify_proof
 from starkware.cairo.stark_verifier.air.public_input import PublicInput, SegmentInfo
 from starkware.cairo.stark_verifier.air.public_memory import AddrValue
 from starkware.cairo.stark_verifier.core.stark import StarkProof
@@ -25,7 +22,7 @@ const INITIAL_PC = 1;
 // See verify_stack() for more detail.
 func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
-    let n_builtins = 8;
+    let n_builtins = 4;
     assert builtins_address[n_builtins] = 0;
     return (n_builtins=n_builtins, builtins=builtins_address);
 
@@ -33,11 +30,7 @@ func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     dw 'output';
     dw 'pedersen';
     dw 'range_check';
-    dw 'ecdsa';
     dw 'bitwise';
-    dw 'ec_op';
-    dw 'keccak';
-    dw 'poseidon';
     dw 0;
 }
 
@@ -46,7 +39,7 @@ func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
 // Returns the program hash and the output hash.
 func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     proof: StarkProof*
-) -> (program_hash: felt, output_hash: felt) {
+) -> (program_ptr: felt*, program_len: felt, output_ptr: felt*, output_len: felt) {
     alloc_locals;
     verify_proof(proof=proof, security_bits=SECURITY_BITS);
     return _verify_public_input(public_input=cast(proof.public_input, PublicInput*));
@@ -54,7 +47,7 @@ func verify_cairo_proof{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr
 
 func _verify_public_input{
     range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
-}(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt) {
+}(public_input: PublicInput*) -> (program_ptr: felt*, program_len: felt, output_ptr: felt*, output_len: felt) {
     alloc_locals;
     local public_segments: SegmentInfo* = public_input.segments;
 
@@ -95,7 +88,11 @@ func _verify_public_input{
         assert program[4] = 0x10780017fff7fff;  // Instruction: jmp rel 0.
         assert program[5] = 0x0;
         // Program hash.
-        let (program_hash) = hash_felts{hash_ptr=pedersen_ptr}(data=program, length=program_len);
+
+        // NOTE: We calculate the program hash in the aggregate/increment program.
+        // This saves us one calculation of the program hash if the aggregate program aggregates
+        // the two same programs.
+        // let (program_hash) = hash_felts{hash_ptr=pedersen_ptr}(data=program, length=program_len);
 
         // 2. Execution segment.
         // 2.1. initial_fp, initial_pc.
@@ -124,13 +121,13 @@ func _verify_public_input{
         let (output: felt*) = alloc();
         local output_len = output_stop - output_start;
         extract_range(addr=output_start, length=output_len, output=output);
-        let (output_hash) = hash_felts{hash_ptr=pedersen_ptr}(data=output, length=output_len);
+        // let (output_hash) = hash_felts{hash_ptr=pedersen_ptr}(data=output, length=output_len);
     }
 
     // Make sure main_page_len is correct.
     assert memory = &public_input.main_page[public_input.main_page_len];
 
-    return (program_hash=program_hash, output_hash=output_hash);
+    return (program_ptr=program, program_len=program_len, output_ptr=output, output_len=output_len);
 }
 
 // Verifies the initial or the final part of the stack.
@@ -176,32 +173,4 @@ func extract_range{memory: AddrValue*}(addr: felt, length: felt, output: felt*) 
     assert output[0] = memory.value;
     let memory = &memory[1];
     return extract_range(addr=addr + 1, length=length - 1, output=&output[1]);
-}
-
-// Main function for the Cairo verifier.
-//
-// Hint arguments:
-// program_input - Contains the inputs for the Cairo verifier.
-//
-// Outputs the program hash and the hash of the output.
-func main{
-    output_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    local proof: StarkProof*;
-    %{
-        from starkware.cairo.stark_verifier.air.parser import parse_proof
-        ids.proof = segments.gen_arg(parse_proof(
-            identifiers=ids._context.identifiers,
-            proof_json=program_input["proof"]))
-    %}
-    let (program_hash, output_hash) = verify_cairo_proof(proof);
-
-    // Write program_hash and output_hash to output.
-    assert [cast(output_ptr, CairoVerifierOutput*)] = CairoVerifierOutput(
-        program_hash=program_hash, output_hash=output_hash
-    );
-    let output_ptr = output_ptr + CairoVerifierOutput.SIZE;
-
-    return ();
 }

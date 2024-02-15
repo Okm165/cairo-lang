@@ -22,6 +22,8 @@ setuptools.setup(
     url="https://cairo-lang.org/",
     package_data={
         "utils/": ["*.cairo", "*/*.cairo"],
+        "starkware.cairo.bootloaders": ["*.cairo", "*/*.cairo"],
+        "starkware.cairo.bootloaders.simple_bootloader": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.cairo_verifier": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.cairo_verifier.layouts": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.cairo_verifier.layouts.all_cairo": ["*.cairo", "*/*.cairo"],

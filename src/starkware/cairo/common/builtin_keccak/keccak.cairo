@@ -7,7 +7,7 @@
 //
 // The module uses the same helper functions as in the non-builtin keccak implementation
 // (e.g. ``keccak_add_uint256()`` and ``keccak_add_felt()``). To use them, you should allocate a new
-// memory segment to a variable named ``inputs`` (this value is an implicit argument to those
+// memory segment to a variable named ``data`` (this value is an implicit argument to those
 // functions). Once the input is ready, you should call ``keccak()`` or ``keccak_bigend()``.
 
 from starkware.cairo.common.alloc import alloc
@@ -29,12 +29,12 @@ func keccak_uint256s{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: 
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_uint256s{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=0);
+    keccak_add_uint256s{data=data}(n_elements=n_elements, elements=elements, bigend=0);
 
-    return keccak(inputs=inputs_start, n_bytes=n_elements * 32);
+    return keccak(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple uint256 numbers (big-endian).
@@ -44,12 +44,12 @@ func keccak_uint256s_bigend{
 }(n_elements: felt, elements: Uint256*) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_uint256s{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=1);
+    keccak_add_uint256s{data=data}(n_elements=n_elements, elements=elements, bigend=1);
 
-    return keccak_bigend(inputs=inputs_start, n_bytes=n_elements * 32);
+    return keccak_bigend(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple field elements.
@@ -58,12 +58,12 @@ func keccak_felts{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: Kec
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_felts{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=0);
+    keccak_add_felts{data=data}(n_elements=n_elements, elements=elements, bigend=0);
 
-    return keccak(inputs=inputs_start, n_bytes=n_elements * 32);
+    return keccak(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Computes the keccak hash of multiple field elements (big-endian).
@@ -73,12 +73,12 @@ func keccak_felts_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_p
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (inputs) = alloc();
-    let inputs_start = inputs;
+    let (data) = alloc();
+    let data_start = data;
 
-    keccak_add_felts{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=1);
+    keccak_add_felts{data=data}(n_elements=n_elements, elements=elements, bigend=1);
 
-    return keccak_bigend(inputs=inputs_start, n_bytes=n_elements * 32);
+    return keccak_bigend(data=data_start, n_bytes=n_elements * 32);
 }
 
 // Converts a final state of the Keccak builtin to the hash output as `Uint256`.
@@ -119,16 +119,16 @@ func _keccak_output_to_uint256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
 // Computes the keccak of 'input'.
 // To use this function, split the input into words of 64 bits (little endian).
 // For example, to compute keccak('Hello world!'), use:
-//   inputs = [8031924123371070792, 560229490]
+//   data = [8031924123371070792, 560229490]
 // where:
 //   8031924123371070792 == int.from_bytes(b'Hello wo', 'little')
 //   560229490 == int.from_bytes(b'rld!', 'little')
 //
 // Returns the hash as a Uint256.
 func keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (res: Uint256) {
-    let (output) = keccak_final_state(inputs=inputs, n_bytes=n_bytes);
+    let (output) = keccak_final_state(data=data, n_bytes=n_bytes);
 
     let res = _keccak_output_to_uint256(output);
     return res;
@@ -137,144 +137,144 @@ func keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBui
 // Same as keccak, but outputs the hash in big endian representation.
 // Note that the input is still treated as little endian.
 func keccak_bigend{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (res: Uint256) {
-    let (hash) = keccak(inputs=inputs, n_bytes=n_bytes);
+    let (hash) = keccak(data=data, n_bytes=n_bytes);
     let (res) = uint256_reverse_endian(num=hash);
     return (res=res);
 }
 
 // Same as keccak, but outputs a pointer to the final state instead.
 func keccak_final_state{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_bytes: felt
+    data: felt*, n_bytes: felt
 ) -> (output: KeccakBuiltinState*) {
     alloc_locals;
     tempvar state = new KeccakBuiltinState(s0=0, s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0);
-    return _keccak(inputs=inputs, n_bytes=n_bytes, state=state);
+    return _keccak(data=data, n_bytes=n_bytes, state=state);
 }
 
-// Xors the last keccak state with 'inputs' and stores the result in keccak_ptr.
-// Assumes that 'inputs' is 136 bytes long.
+// Xors the last keccak state with 'data' and stores the result in keccak_ptr.
+// Assumes that 'data' is 136 bytes long.
 //
-// inputs: a pointer to 64 bit words.
+// data: a pointer to 64 bit words.
 // state: a pointer to 200 bit elements.
 func _prepare_full_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, state: KeccakBuiltinState*
+    data: felt*, state: KeccakBuiltinState*
 ) {
-    // Assert that inputs[0], inputs[1] and inputs[2] consist of 8 bytes each.
-    assert [range_check_ptr] = inputs[0];
-    assert [range_check_ptr + 1] = inputs[0] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 2] = inputs[1];
-    assert [range_check_ptr + 3] = inputs[1] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 4] = inputs[2];
-    assert [range_check_ptr + 5] = inputs[2] - 256 ** 8 + 2 ** 128;
+    // Assert that data[0], data[1] and data[2] consist of 8 bytes each.
+    assert [range_check_ptr] = data[0];
+    assert [range_check_ptr + 1] = data[0] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 2] = data[1];
+    assert [range_check_ptr + 3] = data[1] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 4] = data[2];
+    assert [range_check_ptr + 5] = data[2] - 256 ** 8 + 2 ** 128;
 
-    // Split inputs[3] into low3 (1 byte) and high3 (7 bytes).
+    // Split data[3] into low3 (1 byte) and high3 (7 bytes).
     let low3 = [range_check_ptr + 6];
     let high3 = [range_check_ptr + 7];
-    %{ ids.high3, ids.low3 = divmod(memory[ids.inputs + 3], 256) %}
+    %{ ids.high3, ids.low3 = divmod(memory[ids.data + 3], 256) %}
     assert [range_check_ptr + 8] = low3 - 256 + 2 ** 128;
     assert [range_check_ptr + 9] = high3 - 256 ** 7 + 2 ** 128;
-    assert inputs[3] = low3 + high3 * 256;
+    assert data[3] = low3 + high3 * 256;
 
-    // Xor state.s0 with 25 bytes from inputs and store in keccak_ptr.input.s0.
-    let element = inputs[0] + inputs[1] * 256 ** 8 + inputs[2] * 256 ** 16 + low3 * 256 ** 24;
+    // Xor state.s0 with 25 bytes from data and store in keccak_ptr.input.s0.
+    let element = data[0] + data[1] * 256 ** 8 + data[2] * 256 ** 16 + low3 * 256 ** 24;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s0;
     assert keccak_ptr.input.s0 = bitwise_ptr.x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
-    // Assert that inputs[4] and inputs[5] consist of 8 bytes each.
-    assert [range_check_ptr + 10] = inputs[4];
-    assert [range_check_ptr + 11] = inputs[4] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 12] = inputs[5];
-    assert [range_check_ptr + 13] = inputs[5] - 256 ** 8 + 2 ** 128;
+    // Assert that data[4] and data[5] consist of 8 bytes each.
+    assert [range_check_ptr + 10] = data[4];
+    assert [range_check_ptr + 11] = data[4] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 12] = data[5];
+    assert [range_check_ptr + 13] = data[5] - 256 ** 8 + 2 ** 128;
 
-    // Split inputs[6] into low6 (2 byte) and high6 (6 bytes).
+    // Split data[6] into low6 (2 byte) and high6 (6 bytes).
     let low6 = [range_check_ptr + 14];
     let high6 = [range_check_ptr + 15];
-    %{ ids.high6, ids.low6 = divmod(memory[ids.inputs + 6], 256 ** 2) %}
+    %{ ids.high6, ids.low6 = divmod(memory[ids.data + 6], 256 ** 2) %}
     assert [range_check_ptr + 16] = low6 - 256 ** 2 + 2 ** 128;
     assert [range_check_ptr + 17] = high6 - 256 ** 6 + 2 ** 128;
-    assert inputs[6] = low6 + high6 * 256 ** 2;
+    assert data[6] = low6 + high6 * 256 ** 2;
 
-    // Xor state.s1 with the next 25 bytes from inputs and store in keccak_ptr.input.s1.
-    let element = high3 + inputs[4] * 256 ** 7 + inputs[5] * 256 ** 15 + low6 * 256 ** 23;
+    // Xor state.s1 with the next 25 bytes from data and store in keccak_ptr.input.s1.
+    let element = high3 + data[4] * 256 ** 7 + data[5] * 256 ** 15 + low6 * 256 ** 23;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s1;
     assert keccak_ptr.input.s1 = bitwise_ptr.x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
-    // Assert that inputs[7] and inputs[8] consist of 8 bytes each.
-    assert [range_check_ptr + 18] = inputs[7];
-    assert [range_check_ptr + 19] = inputs[7] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 20] = inputs[8];
-    assert [range_check_ptr + 21] = inputs[8] - 256 ** 8 + 2 ** 128;
+    // Assert that data[7] and data[8] consist of 8 bytes each.
+    assert [range_check_ptr + 18] = data[7];
+    assert [range_check_ptr + 19] = data[7] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 20] = data[8];
+    assert [range_check_ptr + 21] = data[8] - 256 ** 8 + 2 ** 128;
 
-    // Split inputs[9] into low9 (3 byte) and high9 (5 bytes).
+    // Split data[9] into low9 (3 byte) and high9 (5 bytes).
     let low9 = [range_check_ptr + 22];
     let high9 = [range_check_ptr + 23];
-    %{ ids.high9, ids.low9 = divmod(memory[ids.inputs + 9], 256 ** 3) %}
+    %{ ids.high9, ids.low9 = divmod(memory[ids.data + 9], 256 ** 3) %}
     assert [range_check_ptr + 24] = low9 - 256 ** 3 + 2 ** 128;
     assert [range_check_ptr + 25] = high9 - 256 ** 5 + 2 ** 128;
-    assert inputs[9] = low9 + high9 * 256 ** 3;
+    assert data[9] = low9 + high9 * 256 ** 3;
 
-    // Xor state.s2 with the next 25 bytes from inputs and store in keccak_ptr.input.s2.
-    let element = high6 + inputs[7] * 256 ** 6 + inputs[8] * 256 ** 14 + low9 * 256 ** 22;
+    // Xor state.s2 with the next 25 bytes from data and store in keccak_ptr.input.s2.
+    let element = high6 + data[7] * 256 ** 6 + data[8] * 256 ** 14 + low9 * 256 ** 22;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s2;
     assert keccak_ptr.input.s2 = bitwise_ptr.x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
-    // Assert that inputs[10] and inputs[11] consist of 8 bytes each.
-    assert [range_check_ptr + 26] = inputs[10];
-    assert [range_check_ptr + 27] = inputs[10] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 28] = inputs[11];
-    assert [range_check_ptr + 29] = inputs[11] - 256 ** 8 + 2 ** 128;
+    // Assert that data[10] and data[11] consist of 8 bytes each.
+    assert [range_check_ptr + 26] = data[10];
+    assert [range_check_ptr + 27] = data[10] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 28] = data[11];
+    assert [range_check_ptr + 29] = data[11] - 256 ** 8 + 2 ** 128;
 
-    // Split inputs[12] into low12 (4 byte) and high12 (4 bytes).
+    // Split data[12] into low12 (4 byte) and high12 (4 bytes).
     let low12 = [range_check_ptr + 30];
     let high12 = [range_check_ptr + 31];
-    %{ ids.high12, ids.low12 = divmod(memory[ids.inputs + 12], 256 ** 4) %}
+    %{ ids.high12, ids.low12 = divmod(memory[ids.data + 12], 256 ** 4) %}
     assert [range_check_ptr + 32] = low12 - 256 ** 4 + 2 ** 128;
     assert [range_check_ptr + 33] = high12 - 256 ** 4 + 2 ** 128;
-    assert inputs[12] = low12 + high12 * 256 ** 4;
+    assert data[12] = low12 + high12 * 256 ** 4;
 
-    // Xor state.s3 with the next 25 bytes from inputs and store in keccak_ptr.input.s3.
-    let element = high9 + inputs[10] * 256 ** 5 + inputs[11] * 256 ** 13 + low12 * 256 ** 21;
+    // Xor state.s3 with the next 25 bytes from data and store in keccak_ptr.input.s3.
+    let element = high9 + data[10] * 256 ** 5 + data[11] * 256 ** 13 + low12 * 256 ** 21;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s3;
     assert keccak_ptr.input.s3 = bitwise_ptr.x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
-    // Assert that inputs[13] and inputs[14] consist of 8 bytes each.
-    assert [range_check_ptr + 34] = inputs[13];
-    assert [range_check_ptr + 35] = inputs[13] - 256 ** 8 + 2 ** 128;
-    assert [range_check_ptr + 36] = inputs[14];
-    assert [range_check_ptr + 37] = inputs[14] - 256 ** 8 + 2 ** 128;
+    // Assert that data[13] and data[14] consist of 8 bytes each.
+    assert [range_check_ptr + 34] = data[13];
+    assert [range_check_ptr + 35] = data[13] - 256 ** 8 + 2 ** 128;
+    assert [range_check_ptr + 36] = data[14];
+    assert [range_check_ptr + 37] = data[14] - 256 ** 8 + 2 ** 128;
 
-    // Split inputs[15] into low15 (5 byte) and high15 (3 bytes).
+    // Split data[15] into low15 (5 byte) and high15 (3 bytes).
     let low15 = [range_check_ptr + 38];
     let high15 = [range_check_ptr + 39];
-    %{ ids.high15, ids.low15 = divmod(memory[ids.inputs + 15], 256 ** 5) %}
+    %{ ids.high15, ids.low15 = divmod(memory[ids.data + 15], 256 ** 5) %}
     assert [range_check_ptr + 40] = low15 - 256 ** 5 + 2 ** 128;
     assert [range_check_ptr + 41] = high15 - 256 ** 3 + 2 ** 128;
-    assert inputs[15] = low15 + high15 * 256 ** 5;
+    assert data[15] = low15 + high15 * 256 ** 5;
 
-    // Xor state.s4 with the next 25 bytes from inputs and store in keccak_ptr.input.s4.
-    let element = high12 + inputs[13] * 256 ** 4 + inputs[14] * 256 ** 12 + low15 * 256 ** 20;
+    // Xor state.s4 with the next 25 bytes from data and store in keccak_ptr.input.s4.
+    let element = high12 + data[13] * 256 ** 4 + data[14] * 256 ** 12 + low15 * 256 ** 20;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s4;
     assert keccak_ptr.input.s4 = bitwise_ptr.x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
-    // Assert that inputs[16] consist of 8 bytes.
-    assert [range_check_ptr + 42] = inputs[16];
-    assert [range_check_ptr + 43] = inputs[16] - 256 ** 8 + 2 ** 128;
+    // Assert that data[16] consist of 8 bytes.
+    assert [range_check_ptr + 42] = data[16];
+    assert [range_check_ptr + 43] = data[16] - 256 ** 8 + 2 ** 128;
 
-    // Xor state.s5 (25-byte element) with the next 11 bytes from inputs (pad with zeros to
+    // Xor state.s5 (25-byte element) with the next 11 bytes from data (pad with zeros to
     // complete to 25 bytes) and store in keccak_ptr.input.s5.
-    let element = high15 + inputs[16] * 256 ** 3;
+    let element = high15 + data[16] * 256 ** 3;
     assert bitwise_ptr.x = element;
     assert bitwise_ptr.y = state.s5;
     assert keccak_ptr.input.s5 = bitwise_ptr.x_xor_y;
@@ -291,12 +291,12 @@ func _prepare_full_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_p
 
 // Pads the input bytes to a full 136-byte block and calls _prepare_full_block.
 func _prepare_last_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_bytes: felt, state: KeccakBuiltinState*
+    data: felt*, n_bytes: felt, state: KeccakBuiltinState*
 ) {
     alloc_locals;
 
-    let (padded_inputs) = alloc();
-    let dst = padded_inputs;
+    let (padded_data) = alloc();
+    let dst = padded_data;
 
     // Write n_bytes as n_bytes_left + n_words_to_copy * BYTES_IN_WORD.
     let n_words_to_copy = [range_check_ptr];
@@ -308,7 +308,7 @@ func _prepare_last_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_p
     assert [range_check_ptr + 3] = n_words_to_copy - KECCAK_FULL_RATE_IN_WORDS + 2 ** 128;
     assert n_bytes = n_bytes_left + n_words_to_copy * BYTES_IN_WORD;
     let range_check_ptr = range_check_ptr + 4;
-    memcpy(dst=dst, src=inputs, len=n_words_to_copy);
+    memcpy(dst=dst, src=data, len=n_words_to_copy);
     let dst = dst + n_words_to_copy;
 
     tempvar padding_len = KECCAK_FULL_RATE_IN_WORDS - n_words_to_copy;
@@ -316,7 +316,7 @@ func _prepare_last_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_p
     if (n_bytes_left == 0) {
         input_word = 0;
     } else {
-        assert input_word = inputs[n_words_to_copy];
+        assert input_word = data[n_words_to_copy];
     }
 
     let first_one = _pow256(n_bytes_left);
@@ -332,7 +332,7 @@ func _prepare_last_block{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_p
         assert dst[padding_len - 1] = 2 ** 63;
     }
 
-    return _prepare_full_block(inputs=padded_inputs, state=state);
+    return _prepare_full_block(data=padded_data, state=state);
 }
 
 // Efficiently returns 256**n.
@@ -353,49 +353,49 @@ func _pow256(n: felt) -> felt {
 }
 
 func _keccak{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_bytes: felt, state: KeccakBuiltinState*
+    data: felt*, n_bytes: felt, state: KeccakBuiltinState*
 ) -> (output: KeccakBuiltinState*) {
     if (nondet %{ ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES %} != 0) {
-        _prepare_full_block(inputs=inputs, state=state);
+        _prepare_full_block(data=data, state=state);
         let state = &(keccak_ptr.output);
         let keccak_ptr = keccak_ptr + KeccakBuiltin.SIZE;
 
         return _keccak(
-            inputs=inputs + KECCAK_FULL_RATE_IN_WORDS,
+            data=data + KECCAK_FULL_RATE_IN_WORDS,
             n_bytes=n_bytes - KECCAK_FULL_RATE_IN_BYTES,
             state=state,
         );
     }
 
-    _prepare_last_block(inputs=inputs, n_bytes=n_bytes, state=state);
+    _prepare_last_block(data=data, n_bytes=n_bytes, state=state);
     let state = &(keccak_ptr.output);
     let keccak_ptr = keccak_ptr + KeccakBuiltin.SIZE;
     return (output=state);
 }
 
 // Same as keccak but assumes that the input was already padded to 1088-bit blocks.
-// Namely, the size of the `inputs` should be `n_blocks * KECCAK_FULL_RATE_IN_WORDS`.
+// Namely, the size of the `data` should be `n_blocks * KECCAK_FULL_RATE_IN_WORDS`.
 func keccak_padded_input{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*}(
-    inputs: felt*, n_blocks: felt
+    data: felt*, n_blocks: felt
 ) -> (res: Uint256) {
     tempvar state = new KeccakBuiltinState(s0=0, s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0);
-    let output = _keccak_padded_input(inputs, n_blocks, state);
+    let output = _keccak_padded_input(data, n_blocks, state);
     let res = _keccak_output_to_uint256(output);
     return res;
 }
 
 func _keccak_padded_input{
     range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: KeccakBuiltin*
-}(inputs: felt*, n_blocks: felt, state: KeccakBuiltinState*) -> KeccakBuiltinState* {
+}(data: felt*, n_blocks: felt, state: KeccakBuiltinState*) -> KeccakBuiltinState* {
     if (n_blocks == 0) {
         return state;
     }
 
-    _prepare_full_block(inputs=inputs, state=state);
+    _prepare_full_block(data=data, state=state);
     let state = &(keccak_ptr.output);
     let keccak_ptr = keccak_ptr + KeccakBuiltin.SIZE;
 
     return _keccak_padded_input(
-        inputs=&inputs[KECCAK_FULL_RATE_IN_WORDS], n_blocks=n_blocks - 1, state=state
+        data=&data[KECCAK_FULL_RATE_IN_WORDS], n_blocks=n_blocks - 1, state=state
     );
 }

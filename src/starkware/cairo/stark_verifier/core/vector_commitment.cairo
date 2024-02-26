@@ -1,7 +1,6 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash
-from starkware.cairo.common.cairo_blake2s.blake2s import blake2s_add_felt, blake2s_bigend
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_nn, assert_nn_le, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_nn
 from starkware.cairo.common.pow import pow
@@ -11,6 +10,12 @@ from starkware.cairo.stark_verifier.core.channel import (
     ChannelSentFelt,
     ChannelUnsentFelt,
     read_felt_from_prover,
+)
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felt,
+)
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
 
 // Commitment values for a vector commitment. Used to generate a commitment by "reading" these
@@ -74,7 +79,7 @@ func vector_commit{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_check
 // Indices must be sorted and unique.
 func vector_commitment_decommit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(
@@ -139,7 +144,7 @@ func shift_queries{range_check_ptr}(
 // node or a leaf).
 func compute_root_from_queries{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     authentications: felt*,
@@ -177,7 +182,7 @@ func compute_root_from_queries{
         // Left child.
         if (next != queue_tail and current.index + 1 == next.index) {
             // Next holds the sibling.
-            let (hash) = hash_blake_or_poseidon(current.value, next.value, is_verifier_friendly);
+            let (hash) = hash_keccak_or_poseidon(current.value, next.value, is_verifier_friendly);
             assert queue_tail.value = hash;
             return compute_root_from_queries(
                 queue_head=&queue_head[2],
@@ -185,12 +190,12 @@ func compute_root_from_queries{
                 n_verifier_friendly_layers=n_verifier_friendly_layers,
             );
         }
-        let (hash) = hash_blake_or_poseidon(
+        let (hash) = hash_keccak_or_poseidon(
             current.value, authentications[0], is_verifier_friendly
         );
     } else {
         // Right child.
-        let (hash) = hash_blake_or_poseidon(
+        let (hash) = hash_keccak_or_poseidon(
             authentications[0], current.value, is_verifier_friendly
         );
     }
@@ -204,9 +209,9 @@ func compute_root_from_queries{
     );
 }
 
-func hash_blake_or_poseidon{
+func hash_keccak_or_poseidon{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(x: felt, y: felt, is_verifier_friendly: felt) -> (res: felt) {
@@ -214,15 +219,15 @@ func hash_blake_or_poseidon{
         let (res) = poseidon_hash(x=x, y=y);
         return (res=res);
     } else {
-        let (res) = truncated_blake2s(x, y);
+        let (res) = truncated_keccak(x, y);
         return (res=res);
     }
 }
 
-// A 160 LSB truncated version of blake2s.
+// A 160 LSB truncated version of keccak.
 // hash:
-//   blake2s(x, y) & ~((1<<96) - 1).
-func truncated_blake2s{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: BitwiseBuiltin*}(
+//   keccak(x, y) & ~((1<<96) - 1).
+func truncated_keccak{range_check_ptr, keccak_ptr: KeccakBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     x: felt, y: felt
 ) -> (res: felt) {
     alloc_locals;
@@ -230,10 +235,10 @@ func truncated_blake2s{range_check_ptr, blake2s_ptr: felt*, bitwise_ptr: Bitwise
     let data_start = data;
 
     with data {
-        blake2s_add_felt(num=x, bigend=1);
-        blake2s_add_felt(num=y, bigend=1);
+        keccak_add_felt(num=x, bigend=1);
+        keccak_add_felt(num=y, bigend=1);
     }
-    let (hash: Uint256) = blake2s_bigend(data=data_start, n_bytes=64);
+    let (hash: Uint256) = keccak_bigend(data=data_start, n_bytes=64);
 
     // Truncate hash - convert value to felt, by taking the least significant 160 bits.
     let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

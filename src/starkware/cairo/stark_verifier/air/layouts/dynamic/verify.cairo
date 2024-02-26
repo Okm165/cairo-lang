@@ -1,4 +1,4 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.registers import get_label_location
 from starkware.cairo.stark_verifier.air.layout import AirWithDynamicLayout, DynamicLayout, Layout
@@ -74,6 +74,7 @@ func verify_proof{
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }(proof: StarkProof*, security_bits: felt) -> () {
     let public_input = cast(proof.public_input, PublicInput*);
     let (air) = build_dynamic_air(public_input.dynamic_params);

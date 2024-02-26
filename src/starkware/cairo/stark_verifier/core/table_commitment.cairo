@@ -1,7 +1,6 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash_many
-from starkware.cairo.common.cairo_blake2s.blake2s import blake2s_add_felts, blake2s_bigend
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_nn, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_nn
 from starkware.cairo.stark_verifier.core.channel import MONTGOMERY_R, Channel, ChannelUnsentFelt
@@ -13,6 +12,12 @@ from starkware.cairo.stark_verifier.core.vector_commitment import (
     VectorUnsentCommitment,
     vector_commit,
     vector_commitment_decommit,
+)
+from starkware.cairo.common.keccak_utils.keccak_utils import (
+    keccak_add_felts,
+)
+from starkware.cairo.common.builtin_keccak.keccak import (
+    keccak_bigend,
 )
 
 // Commitment values for a table commitment protocol. Used to generate a commitment by "reading"
@@ -64,7 +69,7 @@ func table_commit{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_check_
 // witness - the decommitment witness.
 func table_decommit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(
@@ -139,7 +144,7 @@ func to_montgomery(n_values: felt, values: felt*, output: felt*) {
 // is_verifier_friendly - true if the bottom layer uses a verifier friendly hash function.
 func generate_vector_queries{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(
@@ -172,8 +177,8 @@ func generate_vector_queries{
     if (is_verifier_friendly == 0) {
         let (data: felt*) = alloc();
         let data_start = data;
-        blake2s_add_felts{data=data}(n_elements=n_columns, elements=values, bigend=1);
-        let (hash) = blake2s_bigend(data=data_start, n_bytes=32 * n_columns);
+        keccak_add_felts{data=data}(n_elements=n_columns, elements=values, bigend=1);
+        let (hash) = keccak_bigend(data=data_start, n_bytes=32 * n_columns);
 
         // Truncate hash - convert value to felt, by taking the 160 least significant bits.
         let (high_h, high_l) = unsigned_div_rem(hash.high, 2 ** 32);

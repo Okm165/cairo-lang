@@ -1,9 +1,9 @@
-%builtins output pedersen range_check bitwise poseidon
+%builtins output pedersen range_check bitwise poseidon keccak
 
 from starkware.cairo.cairo_verifier.objects import CairoVerifierOutput
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash_many
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.registers import get_label_location
 from starkware.cairo.stark_verifier.air.layouts.recursive.public_verify import (
@@ -45,6 +45,7 @@ func verify_cairo_proof{
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }(proof: StarkProof*) -> (program_hash: felt, output_hash: felt) {
     alloc_locals;
     verify_proof(proof=proof, security_bits=SECURITY_BITS);
@@ -56,6 +57,7 @@ func _verify_public_input{
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt) {
     alloc_locals;
     local public_segments: SegmentInfo* = public_input.segments;
@@ -192,6 +194,7 @@ func main{
     range_check_ptr,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }() {
     alloc_locals;
     local proof: StarkProof*;

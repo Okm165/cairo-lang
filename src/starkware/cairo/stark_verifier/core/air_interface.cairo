@@ -1,4 +1,4 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.stark_verifier.core.channel import Channel
 from starkware.cairo.stark_verifier.core.domains import StarkDomains
@@ -78,7 +78,7 @@ func traces_commit{range_check_ptr, poseidon_ptr: PoseidonBuiltin*, channel: Cha
 
 func traces_decommit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(

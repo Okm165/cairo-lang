@@ -1,4 +1,4 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.common.registers import get_label_location
 from starkware.cairo.stark_verifier.air.layout import AirWithLayout, Layout
@@ -71,6 +71,7 @@ func verify_proof{
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }(proof: StarkProof*, security_bits: felt) -> () {
     let (air) = build_air();
     return verify_stark_proof(air=&air.air, proof=proof, security_bits=security_bits);

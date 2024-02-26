@@ -1,6 +1,5 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_blake2s.blake2s import finalize_blake2s
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.hash import HashBuiltin
 from starkware.cairo.stark_verifier.core.air_interface import (
     AirInstance,
@@ -147,6 +146,7 @@ func verify_stark_proof{
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
+    keccak_ptr: KeccakBuiltin*,
 }(air: AirInstance*, proof: StarkProof*, security_bits: felt) -> () {
     alloc_locals;
 
@@ -158,17 +158,13 @@ func verify_stark_proof{
     // Validate the public input.
     public_input_validate(air=air, public_input=proof.public_input, stark_domains=stark_domains);
 
-    // Initialize blake2s.
-    let (blake2s_ptr: felt*) = alloc();
-    local blake2s_ptr_start: felt* = blake2s_ptr;
-
     // Compute the initial hash seed for the Fiat-Shamir channel.
     let (digest) = public_input_hash(air=air, public_input=proof.public_input);
 
     // Construct the channel.
     let (channel: Channel) = channel_new(digest=digest);
 
-    with blake2s_ptr, channel {
+    with channel {
         let (stark_commitment) = stark_commit(
             air=air,
             public_input=proof.public_input,
@@ -193,15 +189,13 @@ func verify_stark_proof{
         );
     }
 
-    finalize_blake2s(blake2s_ptr_start, blake2s_ptr);
-
     return ();
 }
 
 // STARK commitment phase.
 func stark_commit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
@@ -328,7 +322,7 @@ func verify_oods{range_check_ptr}(
 // STARK decommitment phase.
 func stark_decommit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,

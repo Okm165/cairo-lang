@@ -1,5 +1,5 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.stark_verifier.air.config import TracesConfig, traces_config_validate
 from starkware.cairo.stark_verifier.air.layout import AirWithLayout
 from starkware.cairo.stark_verifier.air.public_input import PublicInput
@@ -104,7 +104,7 @@ func traces_commit{range_check_ptr, poseidon_ptr: PoseidonBuiltin*, channel: Cha
 // decommitment - holds the commited values of the leaves at the query_indices.
 func traces_decommit{
     range_check_ptr,
-    blake2s_ptr: felt*,
+    keccak_ptr: KeccakBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
 }(

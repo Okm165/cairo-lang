@@ -199,6 +199,7 @@ func main{
     alloc_locals;
     local proof: StarkProof*;
     %{
+        from starkware.cairo.print_utils import *
         from starkware.cairo.stark_verifier.air.parser import parse_proof
         ids.proof = segments.gen_arg(parse_proof(
             identifiers=ids._context.identifiers,

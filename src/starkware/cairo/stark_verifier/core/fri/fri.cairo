@@ -179,6 +179,13 @@ func fri_decommit{
 ) {
     alloc_locals;
 
+    // %{
+    //     commitment = FriCommitment(memory, ids.commitment)
+    //     decommitment = FriDecommitment(memory, ids.decommitment)
+    //     witness = FriWitness(memory, ids.witness, commitment.config.n_layers)
+    //     print(witness)
+    // %}
+
     assert n_queries = decommitment.n_values;
     let fri_first_layer_evaluations = decommitment.values;
 

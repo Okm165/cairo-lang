@@ -90,6 +90,21 @@ func traces_commit{range_check_ptr, poseidon_ptr: PoseidonBuiltin*, channel: Cha
         unsent_commitment=unsent_commitment.interaction, config=config.interaction
     );
 
+    // %{
+    //     unsent_commitment = TracesUnsentCommitment(ids.unsent_commitment)
+    //     print(unsent_commitment)
+    // %}
+
+    // %{
+    //     public_input = PublicInput(memory, ids.public_input)
+    //     print(public_input)
+    // %}
+
+    // %{
+    //     config = TracesConfig(ids.config)
+    //     print(config)
+    // %}
+
     return (
         commitment=new TracesCommitment(
             public_input=public_input,
@@ -115,6 +130,21 @@ func traces_decommit{
     decommitment: TracesDecommitment*,
     witness: TracesWitness*,
 ) {
+    // %{
+    //     commitment = TracesCommitment(memory, ids.commitment)
+    //     print(commitment)
+    // %}
+
+    // %{
+    //     decommitment = TracesDecommitment(memory, ids.decommitment)
+    //     print(decommitment)
+    // %}
+
+    // %{
+    //     witness = TracesWitness(memory, ids.witness)
+    //     print(witness)
+    // %}
+
     table_decommit(
         commitment=commitment.original,
         n_queries=n_queries,

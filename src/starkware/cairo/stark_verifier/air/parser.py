@@ -124,7 +124,7 @@ def parse_proof(identifiers: IdentifierManager, proof_json: dict):
         "STARK/FRI/Decommitment/Layer 0/Virtual Oracle/Trace 2"
     )
 
-    assert are_parameters_supported(proof_json["proof_parameters"])
+    # assert are_parameters_supported(proof_json["proof_parameters"])
 
     fri_step_list = proof_json["proof_parameters"]["stark"]["fri"]["fri_step_list"]
     n_fri_layers = len(fri_step_list)

@@ -1,4 +1,4 @@
-%builtins output pedersen range_check bitwise poseidon keccak
+%builtins output pedersen range_check bitwise keccak poseidon
 
 from starkware.cairo.cairo_verifier.objects import CairoVerifierOutput
 from starkware.cairo.common.alloc import alloc
@@ -193,8 +193,8 @@ func main{
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
     bitwise_ptr: BitwiseBuiltin*,
-    poseidon_ptr: PoseidonBuiltin*,
     keccak_ptr: KeccakBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
 }() {
     alloc_locals;
     local proof: StarkProof*;

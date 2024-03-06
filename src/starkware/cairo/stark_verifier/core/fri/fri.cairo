@@ -151,6 +151,11 @@ func fri_commit_rounds{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_c
     let (table_commitment) = table_commit(unsent_commitment=unsent_commitments[0], config=configs);
     assert commitments[0] = table_commitment;
 
+    // %{
+    //     commitment = TableCommitment(ids.table_commitment)
+    //     print(commitment)
+    // %}
+
     // Send the next eval_points.
     random_felts_to_prover(n_elements=1, elements=eval_points);
 
@@ -183,7 +188,8 @@ func fri_decommit{
     //     commitment = FriCommitment(memory, ids.commitment)
     //     decommitment = FriDecommitment(memory, ids.decommitment)
     //     witness = FriWitness(memory, ids.witness, commitment.config.n_layers)
-    //     print(witness)
+    //     queries = FeltArray(memory, ids.queries, ids.n_queries)
+    //     print(commitment)
     // %}
 
     assert n_queries = decommitment.n_values;

@@ -378,6 +378,7 @@ class VectorCommitment:
     def __repr__(self) -> str:
         dict = {
             "config": self.config,
+            "commitment_hash": self.commitment_hash,
         }
         return f"{dict}"
 
@@ -652,3 +653,16 @@ class PublicInput:
         self, cairo_obj, len
     ) -> list[ContinuousPageHeader]:
         return [ContinuousPageHeader(cairo_obj[i]) for i in range(len)]
+
+
+class Channel:
+    def __init__(self, cairo_obj) -> None:
+        self.digest = Felt(cairo_obj.digest)
+        self.counter = Felt(cairo_obj.counter)
+
+    def __repr__(self) -> str:
+        dict = {
+            "digest": self.digest,
+            "counter": self.counter,
+        }
+        return f"{dict}"

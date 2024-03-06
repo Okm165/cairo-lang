@@ -45,6 +45,13 @@ func proof_of_work_commit{
     channel: Channel,
 }(unsent_commitment: ProofOfWorkUnsentCommitment*, config: ProofOfWorkConfig*) {
     alloc_locals;
+
+    // %{
+    //     config = ProofOfWorkConfig(ids.config)
+    //     unsent_commitment = ProofOfWorkUnsentCommitment(ids.unsent_commitment)
+    //     print(config)
+    // %}
+
     let digest = felt_to_uint256(channel.digest);
     let (nonce) = read_uint64_from_prover(unsent_commitment.nonce);
     verify_proof_of_work(digest=digest, n_bits=config.n_bits, nonce=nonce);

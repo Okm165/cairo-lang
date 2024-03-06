@@ -71,7 +71,19 @@ func validate_vector_commitment{range_check_ptr}(
 func vector_commit{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_check_ptr}(
     unsent_commitment: VectorUnsentCommitment, config: VectorCommitmentConfig*
 ) -> (res: VectorCommitment*) {
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    //     unsent_commitment = VectorUnsentCommitment(ids.unsent_commitment)
+    //     print(unsent_commitment)
+    //     config = VectorCommitmentConfig(ids.config)
+    //     print(config)
+    // %}
     let (commitment_hash_value) = read_felt_from_prover(value=unsent_commitment.commitment_hash);
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
     return (res=new VectorCommitment(config=config, commitment_hash=commitment_hash_value));
 }
 
@@ -89,6 +101,14 @@ func vector_commitment_decommit{
     witness: VectorCommitmentWitness*,
 ) {
     alloc_locals;
+
+    %{
+        commitment = VectorCommitment(ids.commitment)
+        print(commitment)
+        print([VectorQuery(ids.queries[i]) for i in range(ids.n_queries)])
+        witness = VectorCommitmentWitness(memory, ids.witness)
+        print(witness)
+    %}
 
     // Shift query indices.
     let (shift) = pow(2, commitment.config.height);

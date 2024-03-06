@@ -94,6 +94,9 @@ func public_input_hash{range_check_ptr, pedersen_ptr: HashBuiltin*, poseidon_ptr
     }
 
     let (res) = poseidon_hash_many(n=data - data_start, elements=data_start);
+    // %{
+    //     print(hex(ids.res))
+    // %}
     return (res=res);
 }
 

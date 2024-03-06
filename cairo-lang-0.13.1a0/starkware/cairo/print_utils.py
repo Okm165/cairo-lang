@@ -83,16 +83,18 @@ class ChannelSentFelt:
 
 
 class StarkUnsentCommitment:
-    def __init__(self, cairo_obj) -> None:
-        self.traces = TracesUnsentCommitment(cairo_obj.traces)
+    def __init__(self, cairo_obj, n_layers, log_last_layer_degree_bound) -> None:
+        # self.traces = TracesUnsentCommitment(cairo_obj.traces)
         self.composition = TableUnsentCommitment(cairo_obj.composition)
-        self.oods_values = self.init_oods_values(cairo_obj.oods_values, 10)
-        self.fri = FriUnsentCommitment(cairo_obj.fri)
+        self.oods_values = self.init_oods_values(cairo_obj.oods_values, 133 + 2)
+        self.fri = FriUnsentCommitment(
+            cairo_obj.fri, n_layers, log_last_layer_degree_bound
+        )
         self.proof_of_work = ProofOfWorkUnsentCommitment(cairo_obj.proof_of_work)
 
     def __repr__(self) -> str:
         dict = {
-            "traces": self.traces,
+            # "traces": self.traces,
             "composition": self.composition,
             "oods_values": self.oods_values,
             "fri": self.fri,
@@ -110,20 +112,20 @@ class StarkUnsentCommitment:
 
 class StarkCommitment:
     def __init__(self, memory, cairo_obj) -> None:
-        self.traces = TracesCommitment(memory, cairo_obj.traces)
+        # self.traces = TracesCommitment(memory, cairo_obj.traces)
         self.composition = TableCommitment(cairo_obj.composition)
         self.interaction_after_composition = InteractionValuesAfterComposition(
             cairo_obj.interaction_after_composition
         )
-        self.oods_values = self.init_oods_values(cairo_obj.oods_values)
+        self.oods_values = self.init_oods_values(cairo_obj.oods_values, 133 + 2)
         self.interaction_after_oods = InteractionValuesAfterOods(
-            cairo_obj.interaction_after_oods
+            memory, cairo_obj.interaction_after_oods, 133 + 2
         )
-        self.fri = FriCommitment(cairo_obj.fri)
+        self.fri = FriCommitment(memory, cairo_obj.fri)
 
     def __repr__(self) -> str:
         dict = {
-            "traces": self.traces,
+            # "traces": self.traces,
             "composition": self.composition,
             "interaction_after_composition": self.interaction_after_composition,
             "oods_values": self.oods_values,
@@ -163,29 +165,29 @@ class InteractionValuesAfterOods:
 
 
 class StarkWitness:
-    def __init__(self, memory, cairo_obj) -> None:
-        self.traces_decommitment = TracesDecommitment(
-            memory, cairo_obj.traces_decommitment
-        )
-        self.traces_witness = TracesWitness(cairo_obj.traces_witness)
-        self.composition_decommitment = TableDecommitment(
+    def __init__(self, memory, cairo_obj, n_layers) -> None:
+        # self.traces_decommitment = TracesDecommitment(
+        #     memory, cairo_obj.traces_decommitment
+        # )
+        # self.traces_witness = TracesWitness(cairo_obj.traces_witness)
+        self.composition_decommitment = TableDecommitment( memory,
             cairo_obj.composition_decommitment
         )
-        self.composition_witness = TableCommitmentWitness(cairo_obj.composition_witness)
-        self.fri_witness = FriWitness(cairo_obj.fri_witness)
+        self.composition_witness = TableCommitmentWitness(memory, cairo_obj.composition_witness)
+        # self.fri_witness = FriWitness(memory, cairo_obj.fri_witness, n_layers)
 
     def __repr__(self) -> str:
         dict = {
-            "traces_decommitment": self.traces_decommitment,
-            "traces_witness": self.traces_witness,
+            # "traces_decommitment": self.traces_decommitment,
+            # "traces_witness": self.traces_witness,
             "composition_decommitment": self.composition_decommitment,
             "composition_witness": self.composition_witness,
-            "fri_witness": self.fri_witness,
+            # "fri_witness": self.fri_witness,
         }
         return f"{dict}"
 
 
-class StarkWitness:
+class StarkProof:
     def __init__(self, cairo_obj) -> None:
         self.config = StarkConfig(cairo_obj.config)
         self.public_input = PublicInput(cairo_obj.public_input)
@@ -203,10 +205,10 @@ class StarkWitness:
 
 
 class StarkConfig:
-    def __init__(self, cairo_obj) -> None:
-        self.traces = TracesConfig(cairo_obj.traces)
+    def __init__(self, memory, cairo_obj) -> None:
+        # self.traces = TracesConfig(cairo_obj.traces)
         self.composition = TableCommitmentConfig(cairo_obj.composition)
-        self.fri = FriConfig(cairo_obj.fri)
+        self.fri = FriConfig(memory, cairo_obj.fri)
         self.proof_of_work = ProofOfWorkConfig(cairo_obj.proof_of_work)
         self.log_trace_domain_size = Felt(cairo_obj.log_trace_domain_size)
         self.n_queries = Felt(cairo_obj.n_queries)
@@ -217,7 +219,7 @@ class StarkConfig:
 
     def __repr__(self) -> str:
         dict = {
-            "traces": self.traces,
+            # "traces": self.traces,
             "composition": self.composition,
             "fri": self.fri,
             "proof_of_work": self.proof_of_work,
@@ -486,8 +488,8 @@ class StarkDomains:
 
 class FriUnsentCommitment:
     def __init__(self, cairo_obj, n_layers, log_last_layer_degree_bound) -> None:
-        self.inner_layers = TableUnsentCommitment(cairo_obj.inner_layers, n_layers - 1)
-        self.last_layer_coefficients = FeltArray(
+        self.inner_layers = self.init_inner_layers(cairo_obj.inner_layers, n_layers - 1)
+        self.last_layer_coefficients = self.init_last_layer_coefficients(
             cairo_obj.last_layer_coefficients, 2**log_last_layer_degree_bound
         )
 

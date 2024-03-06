@@ -98,6 +98,12 @@ struct FriLayerWitness {
 func fri_commit{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_check_ptr}(
     unsent_commitment: FriUnsentCommitment*, config: FriConfig*
 ) -> (commitment: FriCommitment*) {
+
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
+
     alloc_locals;
     let (inner_layer_commitments: TableCommitment**) = alloc();
     let (eval_points: felt*) = alloc();

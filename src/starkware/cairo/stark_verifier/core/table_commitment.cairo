@@ -53,9 +53,22 @@ struct TableCommitmentWitness {
 func table_commit{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_check_ptr}(
     unsent_commitment: TableUnsentCommitment, config: TableCommitmentConfig*
 ) -> (res: TableCommitment*) {
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    //     unsent_commitment = TableUnsentCommitment(ids.unsent_commitment)
+    //     print(unsent_commitment)
+    //     config = TableCommitmentConfig(ids.config)
+    //     print(config)
+    // %}
+
     let (vector_commitment: VectorCommitment*) = vector_commit(
         unsent_commitment=unsent_commitment.vector, config=config.vector
     );
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
     return (res=new TableCommitment(config=config, vector_commitment=vector_commitment));
 }
 

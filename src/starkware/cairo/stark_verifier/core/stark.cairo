@@ -209,6 +209,21 @@ func stark_commit{
 ) -> (res: StarkCommitment*) {
     alloc_locals;
 
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
+
+    // %{
+    //     unsent_commitment = StarkUnsentCommitment(ids.unsent_commitment, 0x5, 0x7)
+    //     print(unsent_commitment)
+    // %}
+
+    // %{
+    //     config = StarkConfig(memory, ids.config)
+    //     print(config)
+    // %}
+
     // Read the commitment of the 'traces' component.
     let (traces_commitment) = traces_commit(
         air=air,
@@ -274,6 +289,11 @@ func stark_commit{
         unsent_commitment=unsent_commitment.proof_of_work, config=config.proof_of_work
     );
 
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
+
     // Return commitment.
     return (
         res=new StarkCommitment(
@@ -337,6 +357,12 @@ func stark_decommit{
     stark_domains: StarkDomains*,
 ) {
     alloc_locals;
+
+    // %{
+    //     commitment = StarkCommitment(memory, ids.commitment)
+    //     witness = StarkWitness(memory, ids.witness, 0x5)
+    //     print(witness)
+    // %}
 
     // First layer decommit.
     traces_decommit(

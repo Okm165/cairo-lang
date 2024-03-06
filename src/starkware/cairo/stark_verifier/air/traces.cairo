@@ -74,6 +74,11 @@ func traces_commit{range_check_ptr, poseidon_ptr: PoseidonBuiltin*, channel: Cha
 ) -> (commitment: TracesCommitment*) {
     alloc_locals;
 
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
+
     // Read original commitment.
     let (original_commitment) = table_commit(
         unsent_commitment=unsent_commitment.original, config=config.original
@@ -103,6 +108,11 @@ func traces_commit{range_check_ptr, poseidon_ptr: PoseidonBuiltin*, channel: Cha
     // %{
     //     config = TracesConfig(ids.config)
     //     print(config)
+    // %}
+
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
     // %}
 
     return (

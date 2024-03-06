@@ -101,6 +101,10 @@ func _verify_public_input{
         // Program hash.
         let (program_hash: felt) = poseidon_hash_many(n=program_len, elements=program);
 
+        %{
+            print(hex(ids.program_hash))
+        %}
+
         // 2. Execution segment.
         // 2.1. initial_fp, initial_pc.
         // Make sure [initial_fp - 2] = initial_fp.
@@ -133,7 +137,9 @@ func _verify_public_input{
 
     // Make sure main_page_len is correct.
     assert memory = &public_input.main_page[public_input.main_page_len];
-
+    %{
+        print(hex(ids.output_hash))
+    %}
     return (program_hash=program_hash, output_hash=output_hash);
 }
 

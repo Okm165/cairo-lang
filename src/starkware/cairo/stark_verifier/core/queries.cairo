@@ -13,6 +13,18 @@ func generate_queries{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_ch
 ) -> (n_queries: felt, queries: felt*) {
     alloc_locals;
 
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    //     print(hex(ids.n_samples));
+    // %}
+
+    // %{
+    //     stark_domains = StarkDomains(ids.stark_domains)
+    //     print(stark_domains)
+    // %}
+
+
     // Sample query indices from the channel.
     let (samples: felt*) = alloc();
     sample_random_queries(
@@ -22,6 +34,11 @@ func generate_queries{poseidon_ptr: PoseidonBuiltin*, channel: Channel, range_ch
     let (n_queries, queries: felt*, multiplicities: felt*) = usort(
         input_len=n_samples, input=samples
     );
+
+    // %{
+    //     channel = Channel(ids.channel)
+    //     print(channel)
+    // %}
 
     return (n_queries=n_queries, queries=queries);
 }

@@ -63,6 +63,26 @@ func eval_composition_polynomial{range_check_ptr}(
 ) -> (res: felt) {
     alloc_locals;
 
+    // %{
+    //     mask_values = FeltArray(memory, ids.mask_values, 734)
+    //     print(mask_values)
+    // %}
+
+    // %{
+    //     constraint_coefficients = FeltArray(memory, ids.constraint_coefficients, 347)
+    //     print(constraint_coefficients)
+    // %}
+
+    // %{
+    //     print(hex(ids.point))
+    //     print(hex(ids.trace_generator))
+    // %}
+
+    // %{
+    //     global_values = GlobalValues(ids.global_values)
+    //     print(global_values)
+    // %}
+
     // Compute powers.
     let (local pow0) = pow(point, (safe_div(global_values.trace_length, 524288)));
     let (local pow1) = pow(point, (safe_div(global_values.trace_length, 32768)));
@@ -10334,6 +10354,10 @@ func eval_composition_polynomial{range_check_ptr}(
     ) / domain14;
     tempvar total_sum = total_sum + constraint_coefficients[346] * value;
 
+    // %{
+    //     print(hex(ids.total_sum))
+    // %}
+
     return (res=total_sum);
 }
 
@@ -10347,6 +10371,28 @@ func eval_oods_polynomial{range_check_ptr}(
     trace_generator: felt,
 ) -> (res: felt) {
     alloc_locals;
+
+    // %{
+    //     column_values = FeltArray(memory, ids.column_values, 15)
+    //     print(column_values)
+    // %}
+
+    // %{
+    //     oods_values = FeltArray(memory, ids.oods_values, 736)
+    //     print(oods_values)
+    // %}
+
+    // %{
+    //     constraint_coefficients = FeltArray(memory, ids.constraint_coefficients, 736)
+    //     print(constraint_coefficients)
+    // %}
+
+    // %{
+    //     print("dupa")
+    //     print(hex(ids.point))
+    //     print(hex(ids.oods_point))
+    //     print(hex(ids.trace_generator))
+    // %}
 
     // Compute powers.
     let (local pow0) = pow(trace_generator, 0);
@@ -13214,5 +13260,10 @@ func eval_oods_polynomial{range_check_ptr}(
     tempvar total_sum = total_sum + constraint_coefficients[735] * value;
 
     static_assert 736 == MASK_SIZE + CONSTRAINT_DEGREE;
+
+    %{
+        print(hex(ids.total_sum))
+    %}
+
     return (res=total_sum);
 }

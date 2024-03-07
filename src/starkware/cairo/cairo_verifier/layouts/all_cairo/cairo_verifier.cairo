@@ -6,11 +6,11 @@ from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash_many
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin, PoseidonBuiltin, KeccakBuiltin
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.registers import get_label_location
-from starkware.cairo.stark_verifier.air.layouts.recursive.public_verify import (
+from starkware.cairo.stark_verifier.air.layouts.recursive_with_poseidon.public_verify import (
     get_layout_builtins,
     segments,
 )
-from starkware.cairo.stark_verifier.air.layouts.recursive.verify import verify_proof
+from starkware.cairo.stark_verifier.air.layouts.recursive_with_poseidon.verify import verify_proof
 from starkware.cairo.stark_verifier.air.public_input import PublicInput, SegmentInfo
 from starkware.cairo.stark_verifier.air.public_memory import AddrValue
 from starkware.cairo.stark_verifier.core.stark import StarkProof
@@ -23,9 +23,9 @@ const INITIAL_PC = 1;
 // The list is zero-terminated.
 //
 // See verify_stack() for more detail.
-func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
+func get_layout_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
-    let n_builtins = 4;
+    let n_builtins = 5;
     assert builtins_address[n_builtins] = 0;
     return (n_builtins=n_builtins, builtins=builtins_address);
 
@@ -34,6 +34,7 @@ func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     dw 'pedersen';
     dw 'range_check';
     dw 'bitwise';
+    dw 'poseidon';
     dw 0;
 }
 
@@ -46,7 +47,7 @@ func verify_cairo_proof{
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     keccak_ptr: KeccakBuiltin*,
-}(proof: StarkProof*) -> (program_hash: felt, output_hash: felt) {
+}(proof: StarkProof*) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;
     verify_proof(proof=proof, security_bits=SECURITY_BITS);
     return _verify_public_input(public_input=cast(proof.public_input, PublicInput*));
@@ -58,7 +59,7 @@ func _verify_public_input{
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     keccak_ptr: KeccakBuiltin*,
-}(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt) {
+}(public_input: PublicInput*) -> (program_hash: felt, output_hash: felt, c: felt, d: felt, n:felt) {
     alloc_locals;
     local public_segments: SegmentInfo* = public_input.segments;
 
@@ -131,10 +132,14 @@ func _verify_public_input{
         let (output_hash: felt) = poseidon_hash_many(n=output_len, elements=output);
     }
 
+    let c = output[output_len - 3];
+    let d = output[output_len - 2];
+    let n = output[output_len - 1];
+
     // Make sure main_page_len is correct.
     assert memory = &public_input.main_page[public_input.main_page_len];
 
-    return (program_hash=program_hash, output_hash=output_hash);
+    return (program_hash=program_hash, output_hash=output_hash, c=c, d=d, n=n);
 }
 
 // Verifies the initial or the final part of the stack.
@@ -205,11 +210,11 @@ func main{
             identifiers=ids._context.identifiers,
             proof_json=program_input["proof"]))
     %}
-    let (program_hash, output_hash) = verify_cairo_proof(proof);
+    let (program_hash, output_hash, c, d, n) = verify_cairo_proof(proof);
 
-    // Write program_hash and output_hash to output.
+    // Write program_hash and output_hash and c, d, n vals for next step to output.
     assert [cast(output_ptr, CairoVerifierOutput*)] = CairoVerifierOutput(
-        program_hash=program_hash, output_hash=output_hash
+        program_hash=program_hash, output_hash=output_hash, c=c, d=d, n=n
     );
     let output_ptr = output_ptr + CairoVerifierOutput.SIZE;
 

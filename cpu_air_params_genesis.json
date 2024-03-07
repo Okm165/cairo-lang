@@ -14,8 +14,7 @@
                 4,
                 4,
                 4,
-                4,
-                1
+                4
             ],
             "last_layer_degree_bound": 128,
             "n_queries": 10,

@@ -170,10 +170,12 @@ class StarkWitness:
         #     memory, cairo_obj.traces_decommitment
         # )
         # self.traces_witness = TracesWitness(cairo_obj.traces_witness)
-        self.composition_decommitment = TableDecommitment( memory,
-            cairo_obj.composition_decommitment
+        self.composition_decommitment = TableDecommitment(
+            memory, cairo_obj.composition_decommitment
         )
-        self.composition_witness = TableCommitmentWitness(memory, cairo_obj.composition_witness)
+        self.composition_witness = TableCommitmentWitness(
+            memory, cairo_obj.composition_witness
+        )
         # self.fri_witness = FriWitness(memory, cairo_obj.fri_witness, n_layers)
 
     def __repr__(self) -> str:
@@ -666,5 +668,187 @@ class Channel:
         dict = {
             "digest": self.digest,
             "counter": self.counter,
+        }
+        return f"{dict}"
+
+
+class EcPoint:
+    def __init__(self, cairo_obj) -> None:
+        self.x = Felt(cairo_obj.x)
+        self.y = Felt(cairo_obj.y)
+
+    def __repr__(self) -> str:
+        dict = {
+            "x": self.x,
+            "y": self.y,
+        }
+        return f"{dict}"
+
+
+class CurveConfig:
+    def __init__(self, cairo_obj) -> None:
+        self.alpha = Felt(cairo_obj.alpha)
+        self.beta = Felt(cairo_obj.beta)
+
+    def __repr__(self) -> str:
+        dict = {
+            "alpha": self.alpha,
+            "beta": self.beta,
+        }
+        return f"{dict}"
+
+
+class EcdsaSigConfig:
+    def __init__(self, cairo_obj) -> None:
+        self.alpha = Felt(cairo_obj.alpha)
+        self.beta = Felt(cairo_obj.beta)
+        self.shift_point = EcPoint(cairo_obj.shift_point)
+
+    def __repr__(self) -> str:
+        dict = {
+            "alpha": self.alpha,
+            "beta": self.beta,
+            "shift_point": self.shift_point,
+        }
+        return f"{dict}"
+
+
+class GlobalValues:
+    def __init__(self, cairo_obj) -> None:
+        self.trace_length = Felt(cairo_obj.trace_length)
+        self.initial_pc = Felt(cairo_obj.initial_pc)
+        self.final_pc = Felt(cairo_obj.final_pc)
+        self.initial_ap = Felt(cairo_obj.initial_ap)
+        self.final_ap = Felt(cairo_obj.final_ap)
+        self.initial_pedersen_addr = Felt(cairo_obj.initial_pedersen_addr)
+        self.initial_range_check_addr = Felt(cairo_obj.initial_range_check_addr)
+        self.initial_ecdsa_addr = Felt(cairo_obj.initial_ecdsa_addr)
+        self.initial_bitwise_addr = Felt(cairo_obj.initial_bitwise_addr)
+        self.initial_ec_op_addr = Felt(cairo_obj.initial_ec_op_addr)
+        self.initial_keccak_addr = Felt(cairo_obj.initial_keccak_addr)
+        self.initial_poseidon_addr = Felt(cairo_obj.initial_poseidon_addr)
+        self.range_check_min = Felt(cairo_obj.range_check_min)
+        self.range_check_max = Felt(cairo_obj.range_check_max)
+        self.offset_size = Felt(cairo_obj.offset_size)
+        self.half_offset_size = Felt(cairo_obj.half_offset_size)
+        self.pedersen__shift_point = EcPoint(cairo_obj.pedersen__shift_point)
+        self.ecdsa__sig_config = EcdsaSigConfig(cairo_obj.ecdsa__sig_config)
+        self.ec_op__curve_config = CurveConfig(cairo_obj.ec_op__curve_config)
+        self.pedersen__points__x = Felt(cairo_obj.pedersen__points__x)
+        self.pedersen__points__y = Felt(cairo_obj.pedersen__points__y)
+        self.ecdsa__generator_points__x = Felt(cairo_obj.ecdsa__generator_points__x)
+        self.ecdsa__generator_points__y = Felt(cairo_obj.ecdsa__generator_points__y)
+        self.keccak__keccak__keccak_round_key0 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key0
+        )
+        self.keccak__keccak__keccak_round_key1 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key1
+        )
+        self.keccak__keccak__keccak_round_key3 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key3
+        )
+        self.keccak__keccak__keccak_round_key7 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key7
+        )
+        self.keccak__keccak__keccak_round_key15 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key15
+        )
+        self.keccak__keccak__keccak_round_key31 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key31
+        )
+        self.keccak__keccak__keccak_round_key63 = Felt(
+            cairo_obj.keccak__keccak__keccak_round_key63
+        )
+        self.poseidon__poseidon__full_round_key0 = Felt(
+            cairo_obj.poseidon__poseidon__full_round_key0
+        )
+        self.poseidon__poseidon__full_round_key1 = Felt(
+            cairo_obj.poseidon__poseidon__full_round_key1
+        )
+        self.poseidon__poseidon__full_round_key2 = Felt(
+            cairo_obj.poseidon__poseidon__full_round_key2
+        )
+        self.poseidon__poseidon__partial_round_key0 = Felt(
+            cairo_obj.poseidon__poseidon__partial_round_key0
+        )
+        self.poseidon__poseidon__partial_round_key1 = Felt(
+            cairo_obj.poseidon__poseidon__partial_round_key1
+        )
+        self.memory__multi_column_perm__perm__interaction_elm = Felt(
+            cairo_obj.memory__multi_column_perm__perm__interaction_elm
+        )
+        self.memory__multi_column_perm__hash_interaction_elm0 = Felt(
+            cairo_obj.memory__multi_column_perm__hash_interaction_elm0
+        )
+        self.range_check16__perm__interaction_elm = Felt(
+            cairo_obj.range_check16__perm__interaction_elm
+        )
+        self.diluted_check__permutation__interaction_elm = Felt(
+            cairo_obj.diluted_check__permutation__interaction_elm
+        )
+        self.diluted_check__interaction_z = Felt(cairo_obj.diluted_check__interaction_z)
+        self.diluted_check__interaction_alpha = Felt(
+            cairo_obj.diluted_check__interaction_alpha
+        )
+        self.memory__multi_column_perm__perm__public_memory_prod = Felt(
+            cairo_obj.memory__multi_column_perm__perm__public_memory_prod
+        )
+        self.range_check16__perm__public_memory_prod = Felt(
+            cairo_obj.range_check16__perm__public_memory_prod
+        )
+        self.diluted_check__first_elm = Felt(cairo_obj.diluted_check__first_elm)
+        self.diluted_check__permutation__public_memory_prod = Felt(
+            cairo_obj.diluted_check__permutation__public_memory_prod
+        )
+        self.diluted_check__final_cum_val = Felt(cairo_obj.diluted_check__final_cum_val)
+
+    def __repr__(self) -> str:
+        dict = {
+            "trace_length": self.trace_length,
+            "initial_pc": self.initial_pc,
+            "final_pc": self.final_pc,
+            "initial_ap": self.initial_ap,
+            "final_ap": self.final_ap,
+            "initial_pedersen_addr": self.initial_pedersen_addr,
+            "initial_range_check_addr": self.initial_range_check_addr,
+            "initial_ecdsa_addr": self.initial_ecdsa_addr,
+            "initial_bitwise_addr": self.initial_bitwise_addr,
+            "initial_ec_op_addr": self.initial_ec_op_addr,
+            "initial_keccak_addr": self.initial_keccak_addr,
+            "initial_poseidon_addr": self.initial_poseidon_addr,
+            "range_check_min": self.range_check_min,
+            "range_check_max": self.range_check_max,
+            "offset_size": self.offset_size,
+            "half_offset_size": self.half_offset_size,
+            "pedersen__shift_point": self.pedersen__shift_point,
+            "ecdsa__sig_config": self.ecdsa__sig_config,
+            "ec_op__curve_config": self.ec_op__curve_config,
+            "pedersen__points__x": self.pedersen__points__x,
+            "pedersen__points__y": self.pedersen__points__y,
+            "ecdsa__generator_points__x": self.ecdsa__generator_points__x,
+            "ecdsa__generator_points__y": self.ecdsa__generator_points__y,
+            "keccak__keccak__keccak_round_key0": self.keccak__keccak__keccak_round_key0,
+            "keccak__keccak__keccak_round_key1": self.keccak__keccak__keccak_round_key1,
+            "keccak__keccak__keccak_round_key3": self.keccak__keccak__keccak_round_key3,
+            "keccak__keccak__keccak_round_key7": self.keccak__keccak__keccak_round_key7,
+            "keccak__keccak__keccak_round_key15": self.keccak__keccak__keccak_round_key15,
+            "keccak__keccak__keccak_round_key31": self.keccak__keccak__keccak_round_key31,
+            "keccak__keccak__keccak_round_key63": self.keccak__keccak__keccak_round_key63,
+            "poseidon__poseidon__full_round_key0": self.poseidon__poseidon__full_round_key0,
+            "poseidon__poseidon__full_round_key1": self.poseidon__poseidon__full_round_key1,
+            "poseidon__poseidon__full_round_key2": self.poseidon__poseidon__full_round_key2,
+            "poseidon__poseidon__partial_round_key0": self.poseidon__poseidon__partial_round_key0,
+            "poseidon__poseidon__partial_round_key1": self.poseidon__poseidon__partial_round_key1,
+            "memory__multi_column_perm__perm__interaction_elm": self.memory__multi_column_perm__perm__interaction_elm,
+            "memory__multi_column_perm__hash_interaction_elm0": self.memory__multi_column_perm__hash_interaction_elm0,
+            "range_check16__perm__interaction_elm": self.range_check16__perm__interaction_elm,
+            "diluted_check__permutation__interaction_elm": self.diluted_check__permutation__interaction_elm,
+            "diluted_check__interaction_z": self.diluted_check__interaction_z,
+            "diluted_check__interaction_alpha": self.diluted_check__interaction_alpha,
+            "memory__multi_column_perm__perm__public_memory_prod": self.memory__multi_column_perm__perm__public_memory_prod,
+            "range_check16__perm__public_memory_prod": self.range_check16__perm__public_memory_prod,
+            "diluted_check__first_elm": self.diluted_check__first_elm,
+            "diluted_check__permutation__public_memory_prod": self.diluted_check__permutation__public_memory_prod,
+            "diluted_check__final_cum_val": self.diluted_check__final_cum_val,
         }
         return f"{dict}"

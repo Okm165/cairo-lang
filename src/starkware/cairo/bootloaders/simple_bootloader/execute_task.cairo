@@ -28,12 +28,8 @@ struct BuiltinData {
     output: felt,
     pedersen: felt,
     range_check: felt,
-    ecdsa: felt,
     bitwise: felt,
-    ec_op: felt,
-    keccak: felt,
     poseidon: felt,
-    range_check96: felt,
 }
 
 // Computes the hash of a program.
@@ -131,12 +127,8 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
         output=output_ptr + 2,
         pedersen=cast(pedersen_ptr, felt),
         range_check=input_builtin_ptrs.range_check,
-        ecdsa=input_builtin_ptrs.ecdsa,
         bitwise=input_builtin_ptrs.bitwise,
-        ec_op=input_builtin_ptrs.ec_op,
-        keccak=input_builtin_ptrs.keccak,
         poseidon=cast(poseidon_ptr, felt),
-        range_check96=input_builtin_ptrs.range_check96,
     );
 
     // Call select_input_builtins to get the relevant input builtin pointers for the task.
@@ -164,7 +156,23 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
         n_builtins = len(task.get_program().builtins)
         new_task_locals = {}
         if isinstance(task, RunProgramTask):
-            new_task_locals['program_input'] = task.program_input
+            input = task.program_input
+            if task_id != 0:
+                program_hash = memory[ids.output_ptr - 5]
+                output_hash = memory[ids.output_ptr - 4]
+                a = memory[ids.output_ptr - 3]
+                b = memory[ids.output_ptr - 2]
+                n = memory[ids.output_ptr - 1]
+
+                input = {
+                    "program_hash": program_hash,
+                    "output_hash": output_hash,
+                    "a": a,
+                    "b": b,
+                    "n": n,
+                }
+            
+            new_task_locals['program_input'] = input
             new_task_locals['WITH_BOOTLOADER'] = True
 
             vm_load_program(task.program, program_address)

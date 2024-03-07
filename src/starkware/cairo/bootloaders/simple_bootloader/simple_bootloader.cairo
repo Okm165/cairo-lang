@@ -10,12 +10,8 @@ func main{
     output_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
-    ecdsa_ptr,
     bitwise_ptr,
-    ec_op_ptr,
-    keccak_ptr,
     poseidon_ptr: PoseidonBuiltin*,
-    range_check96_ptr,
 }() {
     %{
         from starkware.cairo.bootloaders.simple_bootloader.objects import SimpleBootloaderInput

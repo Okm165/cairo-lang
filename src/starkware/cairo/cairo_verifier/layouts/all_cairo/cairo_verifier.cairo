@@ -23,7 +23,7 @@ const INITIAL_PC = 1;
 // The list is zero-terminated.
 //
 // See verify_stack() for more detail.
-func get_layout_builtins() -> (n_builtins: felt, builtins: felt*) {
+func get_program_builtins() -> (n_builtins: felt, builtins: felt*) {
     let (builtins_address) = get_label_location(data);
     let n_builtins = 5;
     assert builtins_address[n_builtins] = 0;

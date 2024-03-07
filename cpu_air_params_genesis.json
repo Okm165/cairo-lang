@@ -1,9 +1,9 @@
 {
     "field": "PrimeField0",
     "channel_hash": "poseidon3",
-    "commitment_hash": "keccak256_masked160_lsb",
+    "commitment_hash": "blake256_masked160_lsb",
     "n_verifier_friendly_commitment_layers": 9999,
-    "pow_hash": "keccak256",
+    "pow_hash": "blake256",
     "statement": {
         "page_hash": "pedersen"
     },
@@ -12,15 +12,16 @@
             "fri_step_list": [
                 0,
                 4,
-                3,
-                2,
-                2
+                4,
+                4,
+                4,
+                1
             ],
             "last_layer_degree_bound": 128,
-            "n_queries": 18,
+            "n_queries": 10,
             "proof_of_work_bits": 30
         },
-        "log_n_cosets": 4
+        "log_n_cosets": 2
     },
 
     "use_extension_field": false,

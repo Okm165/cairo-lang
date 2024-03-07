@@ -4,3 +4,4 @@ cairo-lang-*.zip
 /.vscode/
 
 cairo_verifier*.json
+simple_bootloader*.json

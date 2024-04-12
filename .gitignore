@@ -2,3 +2,5 @@
 __pycache__/
 cairo-lang-*.zip
 /.vscode/
+simple_bootloader*.json
+!simple_bootloader_input.json

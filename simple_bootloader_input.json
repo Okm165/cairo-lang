@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "CairoPiePath",
-            "path": "cairo1_pie.zip",
+            "path": "../cairo1_pie.zip",
             "use_poseidon": true
         }
     ],

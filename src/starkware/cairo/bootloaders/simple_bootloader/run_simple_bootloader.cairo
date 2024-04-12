@@ -14,12 +14,8 @@ func run_simple_bootloader{
     output_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
-    ecdsa_ptr,
     bitwise_ptr,
-    ec_op_ptr,
-    keccak_ptr,
     poseidon_ptr: PoseidonBuiltin*,
-    range_check96_ptr,
 }() {
     alloc_locals;
     local task_range_check_ptr;
@@ -43,39 +39,15 @@ func run_simple_bootloader{
     // A struct containing the pointer to each builtin.
     local builtin_ptrs_before: BuiltinData = BuiltinData(
         output=cast(output_ptr, felt),
-        pedersen=cast(pedersen_ptr, felt),
-        range_check=task_range_check_ptr,
-        ecdsa=ecdsa_ptr,
-        bitwise=bitwise_ptr,
-        ec_op=ec_op_ptr,
-        keccak=keccak_ptr,
-        poseidon=cast(poseidon_ptr, felt),
-        range_check96=range_check96_ptr,
     );
 
     // A struct containing the encoding of each builtin.
     local builtin_encodings: BuiltinData = BuiltinData(
         output='output',
-        pedersen='pedersen',
-        range_check='range_check',
-        ecdsa='ecdsa',
-        bitwise='bitwise',
-        ec_op='ec_op',
-        keccak='keccak',
-        poseidon='poseidon',
-        range_check96='range_check96',
     );
 
     local builtin_instance_sizes: BuiltinData = BuiltinData(
         output=1,
-        pedersen=3,
-        range_check=1,
-        ecdsa=2,
-        bitwise=5,
-        ec_op=7,
-        keccak=16,
-        poseidon=6,
-        range_check96=1,
     );
 
     // Call execute_tasks.
@@ -98,14 +70,7 @@ func run_simple_bootloader{
     // Return the updated builtin pointers.
     local builtin_ptrs: BuiltinData* = builtin_ptrs;
     let output_ptr = cast(builtin_ptrs.output, felt*);
-    let pedersen_ptr = cast(builtin_ptrs.pedersen, HashBuiltin*);
-    let range_check_ptr = builtin_ptrs.range_check;
-    let ecdsa_ptr = builtin_ptrs.ecdsa;
-    let bitwise_ptr = builtin_ptrs.bitwise;
-    let ec_op_ptr = builtin_ptrs.ec_op;
-    let keccak_ptr = builtin_ptrs.keccak;
-    let poseidon_ptr = cast(builtin_ptrs.poseidon, PoseidonBuiltin*);
-    let range_check96_ptr = builtin_ptrs.range_check96;
+    let range_check_ptr = self_range_check_ptr;
 
     // 'execute_tasks' runs untrusted code and uses the range_check builtin to verify that
     // the builtin pointers were advanced correctly by said code.
@@ -150,7 +115,7 @@ func verify_non_negative(num: felt, n_bits: felt) {
 //
 // Hint arguments:
 // tasks - A list of tasks to execute.
-func execute_tasks{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
+func execute_tasks{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
     builtin_encodings: BuiltinData*, builtin_instance_sizes: BuiltinData*, n_tasks: felt
 ) {
     if (n_tasks == 0) {

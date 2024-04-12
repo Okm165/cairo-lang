@@ -26,14 +26,6 @@ struct ProgramHeader {
 
 struct BuiltinData {
     output: felt,
-    pedersen: felt,
-    range_check: felt,
-    ecdsa: felt,
-    bitwise: felt,
-    ec_op: felt,
-    keccak: felt,
-    poseidon: felt,
-    range_check96: felt,
 }
 
 // Computes the hash of a program.
@@ -62,7 +54,7 @@ func compute_program_hash{pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuil
 //   a. Output size (including this prefix)
 //   b. hash_chain(ProgramHeader || task.program.data) where ProgramHeader is defined below.
 // The function returns a pointer to the updated builtin pointers after executing the task.
-func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
+func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
     builtin_encodings: BuiltinData*, builtin_instance_sizes: BuiltinData*, use_poseidon: felt
 ) {
     // Allocate memory for local variables.
@@ -87,15 +79,14 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
         program_address, program_data_size = load_program(
             task=task, memory=memory, program_header=ids.program_header,
             builtins_offset=ids.ProgramHeader.builtin_list)
-        segments.finalize(program_data_base.segment_index, program_data_size)
+        segments.finalize(program_data_base.segment_index, program_data_size + 1)
+        # TODO redefine ProgramHeader for Cairo1 because this is problem here +1 is only tmp solution
     %}
 
     // Verify that the bootloader version is compatible with the bootloader.
     assert program_header.bootloader_version = BOOTLOADER_VERSION;
 
     // Call hash_chain, to verify the program hash.
-    let pedersen_ptr = cast(input_builtin_ptrs.pedersen, HashBuiltin*);
-    let poseidon_ptr = cast(input_builtin_ptrs.poseidon, PoseidonBuiltin*);
     with pedersen_ptr, poseidon_ptr {
         let (hash) = compute_program_hash(
             program_data_ptr=program_data_ptr, use_poseidon=use_poseidon
@@ -129,14 +120,6 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
     // Skip the 2 slots prefix that we add to the task output.
     local pre_execution_builtin_ptrs: BuiltinData = BuiltinData(
         output=output_ptr + 2,
-        pedersen=cast(pedersen_ptr, felt),
-        range_check=input_builtin_ptrs.range_check,
-        ecdsa=input_builtin_ptrs.ecdsa,
-        bitwise=input_builtin_ptrs.bitwise,
-        ec_op=input_builtin_ptrs.ec_op,
-        keccak=input_builtin_ptrs.keccak,
-        poseidon=cast(poseidon_ptr, felt),
-        range_check96=input_builtin_ptrs.range_check96,
     );
 
     // Call select_input_builtins to get the relevant input builtin pointers for the task.

@@ -29,6 +29,7 @@ struct BuiltinData {
     pedersen: felt,
     range_check: felt,
     bitwise: felt,
+    poseidon: felt,
 }
 
 // Computes the hash of a program.
@@ -57,7 +58,7 @@ func compute_program_hash{pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuil
 //   a. Output size (including this prefix)
 //   b. hash_chain(ProgramHeader || task.program.data) where ProgramHeader is defined below.
 // The function returns a pointer to the updated builtin pointers after executing the task.
-func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr}(
     builtin_encodings: BuiltinData*, builtin_instance_sizes: BuiltinData*, use_poseidon: felt
 ) {
     // Allocate memory for local variables.
@@ -91,6 +92,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr
 
     // Call hash_chain, to verify the program hash.
     let pedersen_ptr = cast(input_builtin_ptrs.pedersen, HashBuiltin*);
+    let poseidon_ptr = cast(input_builtin_ptrs.poseidon, PoseidonBuiltin*);
     with pedersen_ptr, poseidon_ptr {
         let (hash) = compute_program_hash(
             program_data_ptr=program_data_ptr, use_poseidon=use_poseidon
@@ -127,6 +129,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr
         pedersen=cast(pedersen_ptr, felt),
         range_check=input_builtin_ptrs.range_check,
         bitwise=input_builtin_ptrs.bitwise,
+        poseidon=cast(poseidon_ptr, felt),
     );
 
     // Call select_input_builtins to get the relevant input builtin pointers for the task.

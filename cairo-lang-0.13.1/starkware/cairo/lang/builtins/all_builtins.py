@@ -54,6 +54,7 @@ ALL_BUILTINS = BuiltinList(
         PEDERSEN_BUILTIN,
         RANGE_CHECK_BUILTIN,
         BITWISE_BUILTIN,
+        POSEIDON_BUILTIN,
     ]
 )
 

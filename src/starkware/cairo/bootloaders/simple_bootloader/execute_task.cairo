@@ -26,6 +26,7 @@ struct ProgramHeader {
 
 struct BuiltinData {
     output: felt,
+    pedersen: felt,
     range_check: felt,
 }
 
@@ -55,7 +56,7 @@ func compute_program_hash{pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuil
 //   a. Output size (including this prefix)
 //   b. hash_chain(ProgramHeader || task.program.data) where ProgramHeader is defined below.
 // The function returns a pointer to the updated builtin pointers after executing the task.
-func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
+func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     builtin_encodings: BuiltinData*, builtin_instance_sizes: BuiltinData*, use_poseidon: felt
 ) {
     // Allocate memory for local variables.
@@ -88,6 +89,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr
     assert program_header.bootloader_version = BOOTLOADER_VERSION;
 
     // Call hash_chain, to verify the program hash.
+    let pedersen_ptr = cast(input_builtin_ptrs.pedersen, HashBuiltin*);
     with pedersen_ptr, poseidon_ptr {
         let (hash) = compute_program_hash(
             program_data_ptr=program_data_ptr, use_poseidon=use_poseidon
@@ -121,6 +123,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr
     // Skip the 2 slots prefix that we add to the task output.
     local pre_execution_builtin_ptrs: BuiltinData = BuiltinData(
         output=output_ptr + 2,
+        pedersen=cast(pedersen_ptr, felt),
         range_check=input_builtin_ptrs.range_check,
     );
 

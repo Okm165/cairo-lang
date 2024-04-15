@@ -51,6 +51,7 @@ class BuiltinList(UserList):
 ALL_BUILTINS = BuiltinList(
     [
         OUTPUT_BUILTIN,
+        PEDERSEN_BUILTIN,
         RANGE_CHECK_BUILTIN,
     ]
 )

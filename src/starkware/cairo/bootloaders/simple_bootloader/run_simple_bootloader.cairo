@@ -39,17 +39,20 @@ func run_simple_bootloader{
     // A struct containing the pointer to each builtin.
     local builtin_ptrs_before: BuiltinData = BuiltinData(
         output=cast(output_ptr, felt),
+        pedersen=cast(pedersen_ptr, felt),
         range_check=task_range_check_ptr,
     );
 
     // A struct containing the encoding of each builtin.
     local builtin_encodings: BuiltinData = BuiltinData(
         output='output',
+        pedersen='pedersen',
         range_check='range_check',
     );
 
     local builtin_instance_sizes: BuiltinData = BuiltinData(
         output=1,
+        pedersen=3,
         range_check=1,
     );
 
@@ -73,6 +76,7 @@ func run_simple_bootloader{
     // Return the updated builtin pointers.
     local builtin_ptrs: BuiltinData* = builtin_ptrs;
     let output_ptr = cast(builtin_ptrs.output, felt*);
+    let pedersen_ptr = cast(builtin_ptrs.pedersen, HashBuiltin*);
     let range_check_ptr = builtin_ptrs.range_check;
 
     // 'execute_tasks' runs untrusted code and uses the range_check builtin to verify that
@@ -118,7 +122,7 @@ func verify_non_negative(num: felt, n_bits: felt) {
 //
 // Hint arguments:
 // tasks - A list of tasks to execute.
-func execute_tasks{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr: HashBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
+func execute_tasks{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     builtin_encodings: BuiltinData*, builtin_instance_sizes: BuiltinData*, n_tasks: felt
 ) {
     if (n_tasks == 0) {

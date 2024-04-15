@@ -41,6 +41,7 @@ func run_simple_bootloader{
         output=cast(output_ptr, felt),
         pedersen=cast(pedersen_ptr, felt),
         range_check=task_range_check_ptr,
+        bitwise=bitwise_ptr,
     );
 
     // A struct containing the encoding of each builtin.
@@ -48,12 +49,14 @@ func run_simple_bootloader{
         output='output',
         pedersen='pedersen',
         range_check='range_check',
+        bitwise='bitwise',
     );
 
     local builtin_instance_sizes: BuiltinData = BuiltinData(
         output=1,
         pedersen=3,
         range_check=1,
+        bitwise=5,
     );
 
     // Call execute_tasks.
@@ -78,6 +81,7 @@ func run_simple_bootloader{
     let output_ptr = cast(builtin_ptrs.output, felt*);
     let pedersen_ptr = cast(builtin_ptrs.pedersen, HashBuiltin*);
     let range_check_ptr = builtin_ptrs.range_check;
+    let bitwise_ptr = builtin_ptrs.bitwise;
 
     // 'execute_tasks' runs untrusted code and uses the range_check builtin to verify that
     // the builtin pointers were advanced correctly by said code.

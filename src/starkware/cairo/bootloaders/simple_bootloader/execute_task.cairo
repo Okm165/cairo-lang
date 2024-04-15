@@ -28,6 +28,7 @@ struct BuiltinData {
     output: felt,
     pedersen: felt,
     range_check: felt,
+    bitwise: felt,
 }
 
 // Computes the hash of a program.
@@ -125,6 +126,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, poseidon_ptr
         output=output_ptr + 2,
         pedersen=cast(pedersen_ptr, felt),
         range_check=input_builtin_ptrs.range_check,
+        bitwise=input_builtin_ptrs.bitwise,
     );
 
     // Call select_input_builtins to get the relevant input builtin pointers for the task.

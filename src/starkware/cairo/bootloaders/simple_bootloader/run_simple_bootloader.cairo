@@ -39,15 +39,18 @@ func run_simple_bootloader{
     // A struct containing the pointer to each builtin.
     local builtin_ptrs_before: BuiltinData = BuiltinData(
         output=cast(output_ptr, felt),
+        range_check=task_range_check_ptr,
     );
 
     // A struct containing the encoding of each builtin.
     local builtin_encodings: BuiltinData = BuiltinData(
         output='output',
+        range_check='range_check',
     );
 
     local builtin_instance_sizes: BuiltinData = BuiltinData(
         output=1,
+        range_check=1,
     );
 
     // Call execute_tasks.
@@ -70,7 +73,7 @@ func run_simple_bootloader{
     // Return the updated builtin pointers.
     local builtin_ptrs: BuiltinData* = builtin_ptrs;
     let output_ptr = cast(builtin_ptrs.output, felt*);
-    let range_check_ptr = self_range_check_ptr;
+    let range_check_ptr = builtin_ptrs.range_check;
 
     // 'execute_tasks' runs untrusted code and uses the range_check builtin to verify that
     // the builtin pointers were advanced correctly by said code.

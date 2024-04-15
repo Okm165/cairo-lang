@@ -26,6 +26,7 @@ struct ProgramHeader {
 
 struct BuiltinData {
     output: felt,
+    range_check: felt,
 }
 
 // Computes the hash of a program.
@@ -120,6 +121,7 @@ func execute_task{builtin_ptrs: BuiltinData*, self_range_check_ptr, pedersen_ptr
     // Skip the 2 slots prefix that we add to the task output.
     local pre_execution_builtin_ptrs: BuiltinData = BuiltinData(
         output=output_ptr + 2,
+        range_check=input_builtin_ptrs.range_check,
     );
 
     // Call select_input_builtins to get the relevant input builtin pointers for the task.

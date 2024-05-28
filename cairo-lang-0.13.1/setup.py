@@ -22,6 +22,7 @@ setuptools.setup(
     url="https://cairo-lang.org/",
     package_data={
         "starkware.cairo.common": ["*.cairo", "*/*.cairo"],
+        "starkware.cairo.builtin_selection": ["*.cairo", "*/*.cairo"],
         "starkware.cairo.lang.compiler": ["cairo.ebnf", "lib/*.cairo"],
         "starkware.cairo.lang.migrators": ["*.ebnf"],
         "starkware.cairo.lang.tracer": ["*.html", "*.css", "*.js", "*.png"],
@@ -41,6 +42,7 @@ setuptools.setup(
             "sierra-compiler-major-*/bin/starknet-sierra-compile",
             "sierra-compiler-major-*/bin/starknet-compile",
         ],
+        "starkware.starknet.builtins": ["*/*.cairo", "*.cairo", "*.json"],
         "starkware.starknet.core.os": ["*/*.cairo", "*.cairo", "*.json"],
         "starkware.starknet.core.test_contract": ["*.cairo", "*.json"],
         "starkware.starknet.security": ["whitelists/*.json"],

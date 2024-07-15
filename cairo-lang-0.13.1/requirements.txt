@@ -20,6 +20,6 @@ pytest-asyncio
 pytest-profiling
 pytest-xdist
 PyYAML
-sympy
+sympy==1.12.1
 typeguard<3.0.0
 web3

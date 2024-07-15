@@ -43,6 +43,7 @@ setuptools.setup(
             "sierra-compiler-major-*/bin/starknet-compile",
         ],
         "starkware.starknet.builtins": ["*/*.cairo", "*.cairo", "*.json"],
+        "starkware.starknet.builtins.segment_arena": ["*/*.cairo", "*.cairo", "*.json"],
         "starkware.starknet.core.os": ["*/*.cairo", "*.cairo", "*.json"],
         "starkware.starknet.core.test_contract": ["*.cairo", "*.json"],
         "starkware.starknet.security": ["whitelists/*.json"],

@@ -23,6 +23,7 @@ SIMPLE_BOOTLOADER_N_RANGE_CHECKS = 20
 SIMPLE_BOOTLOADER_N_STEPS_CONSTANT = 400
 SIMPLE_BOOTLOADER_N_STEPS_RATIO = 8
 
+
 def load_program(task: Task, memory, program_header, builtins_offset):
     """
     Fills the memory with the following:

@@ -11,12 +11,14 @@ from starkware.cairo.lang.vm.cairo_pie import CairoPie
 from starkware.starkware_utils.marshmallow_dataclass_fields import additional_metadata
 from starkware.starkware_utils.validated_dataclass import ValidatedMarshmallowDataclass
 
+
 class Task:
     @abstractmethod
     def get_program(self) -> ProgramBase:
         """
         Returns the task's Cairo program.
         """
+
 
 class TaskSpec:
     """
@@ -57,6 +59,7 @@ class CairoPiePath(TaskSpec):
         return CairoPieTask(
             cairo_pie=CairoPie.from_file(self.path), use_poseidon=self.use_poseidon
         )
+
 
 class TaskSchema(OneOfSchema):
     """

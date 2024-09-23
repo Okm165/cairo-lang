@@ -62,7 +62,8 @@ func main{
     // Extract the aggregator output size and program hash.
     let aggregator_output_length = aggregator_output_end - aggregator_output_start - 1;
     let aggregator_program_hash = aggregator_output_start[1];
-    let aggregator_input_ptr = &aggregator_output_start[2];
+    let applicative_bootloader_hash = aggregator_output_start[2];
+    let aggregator_input_ptr = &aggregator_output_start[3];
 
     // Allocate a segment for the bootloader output.
     local bootloader_output_ptr: felt*;
@@ -97,31 +98,21 @@ func main{
     let poseidon_ptr: PoseidonBuiltin* = poseidon_ptr;
     local bootloader_output_end: felt* = bootloader_output_ptr;
 
-    // Check that exactly two tasks were executed.
-    assert bootloader_output_start[0] = 2;
-
     // Extract the bootloader outputs.
     let bootloader_output_length = bootloader_output_end - bootloader_output_start - 1;
-    let bootloader_left_program_hash = bootloader_output_start[1];
-    let bootloader_left_program_output: CairoVerifierOutput* = cast(
-        &bootloader_output_start[2], CairoVerifierOutput*
-    );
-    let bootloader_right_program_hash = bootloader_output_start[4];
-    let bootloader_right_program_output: CairoVerifierOutput* = cast(
-        &bootloader_output_start[5], CairoVerifierOutput*
-    );
 
     // Assert that the bootloader ran cairo0 verifiers.
-    assert bootloader_left_program_hash = bootloader_right_program_hash;
     // TODO assert verifier program hash
 
-    // Assert that the verifiers verify applicative bootloader runs.
-    assert bootloader_left_program_output.program_hash = bootloader_right_program_output.program_hash;
-    // TODO assert applicative bootloader program hash
-
     // Assert that the bootloader output agrees with the aggregator input.
-    assert aggregator_input_ptr[0] = bootloader_left_program_output.output_hash;
-    assert aggregator_input_ptr[1] = bootloader_right_program_output.output_hash;
+    let nodes_len = bootloader_output_length / (CairoVerifierOutput.SIZE + 1);
+    let (nodes_extracted: felt*) = alloc();
+    extract_nodes(nodes=bootloader_output_start[1], nodes_len=nodes_len, output=nodes_extracted);
+
+    // This represents the "input" of the aggregator, whose correctness is later verified
+    // by the bootloader by running the Cairo verifier.
+    let (input_hash: felt) = poseidon_hash_many(n=nodes_len, elements=nodes_extracted);
+    assert aggregator_input_ptr[0] = input_hash;
 
     %{
         # Restore the output builtin state.
@@ -131,6 +122,7 @@ func main{
     // Output:
     // * The aggregator program hash.
     assert output_ptr[0] = aggregator_program_hash;
+    assert output_ptr[1] = applicative_bootloader_hash;
     let output_ptr = &output_ptr[1];
 
     // Output the aggregated output.
@@ -140,4 +132,16 @@ func main{
     let output_ptr = output_ptr + aggregated_output_length;
 
     return ();
+}
+
+func extract_nodes(nodes: felt*, nodes_len: felt, output: felt*) {
+    if (nodes_len == 0) {
+        return ();
+    }
+
+    assert output[0] = nodes[2];  // extract only poseidon output_hash of node
+
+    return hash_nodes(
+        nodes=&nodes[CairoVerifierOutput.SIZE + 1], nodes_len=nodes_len - 1, output=&output[1]
+    );
 }

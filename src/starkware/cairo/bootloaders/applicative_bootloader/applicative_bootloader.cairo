@@ -17,6 +17,9 @@ func main{
     bitwise_ptr,
     poseidon_ptr: PoseidonBuiltin*,
 }() {
+    alloc_locals;
+
+    let (__fp__, _) = get_fp_and_pc();
 
     // A pointer to the aggregator's task output.
     local aggregator_output_ptr: felt*;
@@ -54,8 +57,7 @@ func main{
     local aggregator_output_end: felt* = aggregator_output_ptr;
 
     // Check that exactly one task was executed.
-    let aggregator_n_tasks = aggregator_output_start[0];
-    assert aggregator_n_tasks = 1;
+    assert aggregator_output_start[0] = 1;
 
     // Extract the aggregator output size and program hash.
     let aggregator_output_length = aggregator_output_end - aggregator_output_start - 1;
@@ -101,21 +103,25 @@ func main{
     // Extract the bootloader outputs.
     let bootloader_output_length = bootloader_output_end - bootloader_output_start - 1;
     let bootloader_left_program_hash = bootloader_output_start[1];
-    let bootloader_left_program_output: CairoVerifierOutput* = cast(&bootloader_output_start[2], CairoVerifierOutput*);
+    let bootloader_left_program_output: CairoVerifierOutput* = cast(
+        &bootloader_output_start[2], CairoVerifierOutput*
+    );
     let bootloader_right_program_hash = bootloader_output_start[4];
-    let bootloader_right_program_output: CairoVerifierOutput* = cast(&bootloader_output_start[5], CairoVerifierOutput*);
+    let bootloader_right_program_output: CairoVerifierOutput* = cast(
+        &bootloader_output_start[5], CairoVerifierOutput*
+    );
 
     // Assert that the bootloader ran cairo0 verifiers.
     assert bootloader_left_program_hash = bootloader_right_program_hash;
     // TODO assert verifier program hash
 
-    // Assert that verifiers verified intended program.
+    // Assert that the verifiers verify applicative bootloader runs.
     assert bootloader_left_program_output.program_hash = bootloader_right_program_output.program_hash;
-    // TODO assert intended program hash
+    // TODO assert applicative bootloader program hash
 
     // Assert that the bootloader output agrees with the aggregator input.
-    aggregator_input_ptr[0] = bootloader_left_program_output.output_hash
-    aggregator_input_ptr[1] = bootloader_right_program_output.output_hash
+    assert aggregator_input_ptr[0] = bootloader_left_program_output.output_hash;
+    assert aggregator_input_ptr[1] = bootloader_right_program_output.output_hash;
 
     %{
         # Restore the output builtin state.
@@ -123,14 +129,12 @@ func main{
     %}
 
     // Output:
-    // * Total number of tasks
     // * The aggregator program hash.
-    assert output_ptr[0] = aggregator_n_tasks;
-    assert output_ptr[1] = aggregator_program_hash;
-    let output_ptr = &output_ptr[2];
+    assert output_ptr[0] = aggregator_program_hash;
+    let output_ptr = &output_ptr[1];
 
     // Output the aggregated output.
-    let aggregated_output_ptr = aggregator_input_ptr + bootloader_tasks_output_length;
+    let aggregated_output_ptr = aggregator_input_ptr + bootloader_output_length;
     let aggregated_output_length = aggregator_output_end - aggregated_output_ptr;
     memcpy(dst=output_ptr, src=aggregated_output_ptr, len=aggregated_output_length);
     let output_ptr = output_ptr + aggregated_output_length;

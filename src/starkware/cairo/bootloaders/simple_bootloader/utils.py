@@ -5,7 +5,7 @@ from starkware.cairo.bootloaders.fact_topology import (
     FactTopology,
     get_fact_topology_from_additional_data,
 )
-from bootloaders.simple_bootloader.objects import CairoPieTask, RunProgramTask, Task
+from starkware.cairo.bootloaders.simple_bootloader.objects import CairoPieTask, RunProgramTask, Task
 from starkware.cairo.lang.vm.cairo_pie import CairoPie, ExecutionResources
 from starkware.cairo.lang.vm.output_builtin_runner import OutputBuiltinRunner
 from starkware.cairo.lang.vm.relocatable import (

@@ -58,3 +58,13 @@ Once the docker image is built, you can fetch the python package zip file using:
 > docker rm -v ${container_id}
 ```
 
+---
+
+Verify Dynamic layout proof
+
+```shell
+./setup.sh 
+./compile.sh
+python cairo_verifier_input.py cairo0_dynamic_stone6_example_proof.json cairo_verifier_input.json
+./run.sh 
+```
